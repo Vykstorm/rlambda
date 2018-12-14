@@ -51,8 +51,8 @@ def anyinstanceof(x, t):
     :param t:
     :return:
     '''
-    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
-    return any(map(lambda item: isinstance(item, t), x))
+    assert iterable(x)
+    return any(map(instanceofchecker(t), x))
 
 def allinstanceof(x, t):
     '''
@@ -62,8 +62,8 @@ def allinstanceof(x, t):
     :param y:
     :return:
     '''
-    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
-    return all(map(lambda item: isinstance(item, t), x))
+    assert iterable(x)
+    return all(map(instanceofchecker(t), x))
 
 
 def anyoftype(x, t):
@@ -73,10 +73,8 @@ def anyoftype(x, t):
     :param t:
     :return:
     '''
-    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
-    if not isinstance(t, tuple):
-        return any(map(lambda item: type(item) == t, x))
-    return any(map(lambda item: type(item) in t, x))
+    assert iterable(x)
+    return any(map(typechecker(t), x))
 
 
 def alloftype(x, t):
@@ -86,13 +84,34 @@ def alloftype(x, t):
     :param t:
     :return:
     '''
-    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
-    if not isinstance(t, tuple):
-        return all(map(lambda item: type(item) == t, x))
-    return all(map(lambda item: type(item) in t, x))
+    assert iterable(x)
+    return all(map(typechecker(t), x))
 
 
+def instanceofchecker(t):
+    '''
+    Returns a callable object that is equivalent to: lambda x: isinstance(x, t)
+    :param x:
+    :param t:
+    :return:
+    '''
+    assert isinstance(t, type) or (iterable(t) and len(tuple(t)) > 0 and all(map(lambda item: isinstance(item, type), t)))
+    if not isinstance(t, type):
+        t = tuple(t)
+    return lambda x: isinstance(x, t)
 
+def typechecker(t):
+    '''
+    Returns a callable object that is equivalent to: lambda x: type(x) == t   if the given argument t is a type.
+    if its instead of a tuple of types, then its equivalent to lambda x: type(x) in t
+    :param t:
+    :return:
+    '''
+    assert isinstance(t, type) or (iterable(t) and len(tuple(t)) > 0 and all(map(lambda item: isinstance(item, type), t)))
+    if isinstance(t, type):
+        return lambda x: type(x) == t
+    t = tuple(t)
+    return lambda x: type(x) in t
 
 
 def enclose(s, chars='()'):
