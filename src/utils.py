@@ -47,8 +47,8 @@ def anyinstanceof(x, t):
     This method returns True if any item of the iterable x is an instance of any of the classes indicated in t (or any of their
     subclasses)
     False otherwise
-    :param x:
-    :param t:
+    :param x: Is an iterable of any type
+    :param t: Must be a type or a tuple of types
     :return:
     '''
     assert iterable(x)
@@ -58,8 +58,8 @@ def allinstanceof(x, t):
     '''
     This method returns True if all items in the iterable x are instances of any of the classes indicated in t (or any of their
     subclasses)
-    :param x:
-    :param y:
+    :param x: Is an iterable of any type
+    :param y: Must be a type or a tuple of types
     :return:
     '''
     assert iterable(x)
@@ -69,8 +69,8 @@ def allinstanceof(x, t):
 def anyoftype(x, t):
     '''
     This method return true if any item in the iterable x is an instance of one of the classes indicated in t
-    :param x:
-    :param t:
+    :param x: Is an iterable of any type
+    :param t: Is a type or a tuple of types
     :return:
     '''
     assert iterable(x)
@@ -80,8 +80,8 @@ def anyoftype(x, t):
 def alloftype(x, t):
     '''
     This method returns true if all items in the iterable x are instance of one of the classes indicated in t
-    :param x:
-    :param t:
+    :param x: Is an iterable of any type
+    :param t: Is a type or a tuple of types
     :return:
     '''
     assert iterable(x)
@@ -91,8 +91,7 @@ def alloftype(x, t):
 def instanceofchecker(t):
     '''
     Returns a callable object that is equivalent to: lambda x: isinstance(x, t)
-    :param x:
-    :param t:
+    :param t: Must be a type or a tuple of types
     :return:
     '''
     assert isinstance(t, type) or (iterable(t) and len(tuple(t)) > 0 and all(map(lambda item: isinstance(item, type), t)))
@@ -104,7 +103,7 @@ def typechecker(t):
     '''
     Returns a callable object that is equivalent to: lambda x: type(x) == t   if the given argument t is a type.
     if its instead of a tuple of types, then its equivalent to lambda x: type(x) in t
-    :param t:
+    :param t: Is a type or a tuple of types
     :return:
     '''
     assert isinstance(t, type) or (iterable(t) and len(tuple(t)) > 0 and all(map(lambda item: isinstance(item, type), t)))
