@@ -11,6 +11,14 @@ its code.
 
 #
 
+You can install it with the setup.py script provided. Be sure that your python version is >=3.6
+```
+git clone https://github.com/Vykstorm/rlambda.git
+cd rlambda
+python3 setup.py install
+```
+
+#
 
 The next code is an example that shows how to construct a simple rlambda object
 ```python
