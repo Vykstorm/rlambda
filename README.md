@@ -9,6 +9,7 @@ statements
 - Creation of lambda objects that can be formatted as strings to visualize
 its code.
 
+Its implementation mostly relies on the standard python "ast" module introduced in version 2.6
 #
 
 You can install it with the setup.py script provided. Be sure that your python version is >=3.6
