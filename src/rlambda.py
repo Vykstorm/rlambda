@@ -12,7 +12,7 @@ import builtins
 class RLambda:
     '''
     An instance of this class emulate a lambda function object. It can be called and also can be used
-    to build another rlambda instances recursively using arithmetic/bitwise and comparision operators among others.
+    to build other rlambda instances recursively using arithmetic/bitwise and comparision operators.
     Check the docs and examples to see all the features of this class.
     '''
     def __init__(self, inputs, body):
@@ -274,6 +274,11 @@ class RLambda:
 
 
 class RLambdaIdentity(RLambda):
+    '''
+    Objects of this class are also rlambdas, and are equivalent to a lambda function object defined like:
+    lambda x: x
+    They are called "identities"
+    '''
     def __init__(self, input):
         assert isinstance(input, str)
         input = str.lower(input)
