@@ -1,12 +1,14 @@
 
 
-from src.utils import iterable
+from src.utils import iterable, allinstanceof, anyinstanceof
 import ast
 from types import FunctionType
 import operator
 from functools import reduce
+from itertools import chain
 import builtins
-from src.astwrappers import Expression, Lambda, Variable, Placeholder
+
+from src.astwrappers import Expression, Lambda, Variable, Placeholder, UnaryOperator, BinaryOperator, CompareOperator
 from src.astwrappers import Index,Slice, ExtendedSlice
 from src.astwrappers import encode_value
 from src.astwrappers import BinaryOperation, UnaryOperation, CompareOperation, AttributeOperation, CallOperation, SubscriptOperation
@@ -17,14 +19,11 @@ from src.astwrappers import EqualThan, NotEqualThan, GreaterThan, GreaterEqualTh
 
 class RLambda:
     def __init__(self, inputs, body):
-        if not iterable(inputs) or any(map(lambda input: not isinstance(input, str), inputs)):
-            raise TypeError()
-        inputs = tuple(inputs)
-        if len(inputs) == 0:
-            raise ValueError()
+        assert iterable(inputs) and allinstanceof(inputs, str)
+        assert isinstance(body, ast.AST)
 
-        if not isinstance(body, ast.AST):
-            raise TypeError()
+        inputs = tuple(inputs)
+        assert len(inputs) > 0
 
         self._inputs = tuple(sorted(inputs, key=str.lower))
         self._body = body
@@ -58,6 +57,8 @@ class RLambda:
         return str(self)
 
     def _binary_op(self, op, other):
+        assert isinstance(op, BinaryOperator)
+
         if isinstance(other, RLambda):
             return RLambda(
                 inputs=self._inputs+other._inputs,
@@ -70,12 +71,16 @@ class RLambda:
         )
 
     def _unary_op(self, op):
+        assert isinstance(op, UnaryOperator)
+
         return RLambda(
             inputs=self._inputs,
             body=UnaryOperation(op, self._body)
         )
 
     def _compare_op(self, op, other):
+        assert isinstance(op, CompareOperator)
+
         if isinstance(other, RLambda):
             return RLambda(
                 inputs=self._inputs+other._inputs,
@@ -88,6 +93,8 @@ class RLambda:
         )
 
     def _attr_op(self, key):
+        assert isinstance(key, str)
+
         return RLambda(
             inputs=self._inputs,
             body=AttributeOperation(self._body, key)
@@ -118,22 +125,20 @@ class RLambda:
             inputs=self._inputs
         )
 
+
     # Calling operations
 
     @staticmethod
     def _call_op(func, *args, **kwargs):
-        encode_arg = lambda arg: encode_value(arg) if not isinstance(arg, RLambda) else arg._body
+        assert callable(func)
+        assert anyinstanceof(chain(args, kwargs.values()), RLambda) and allinstanceof(kwargs.values(), str)
 
-        if not callable(func):
-            raise TypeError()
+        encode_arg = lambda arg: encode_value(arg) if not isinstance(arg, RLambda) else arg._body
 
         inputs = reduce(
             operator.add,
             map(operator.attrgetter('_inputs'),
-                filter(lambda arg: isinstance(arg, RLambda), args + tuple(kwargs.values()))),
-            ())
-        if len(inputs) == 0:
-            raise ValueError()
+                filter(lambda arg: isinstance(arg, RLambda), args + tuple(kwargs.values()))))
 
         args = tuple(map(encode_arg, args))
         kwargs = dict(zip(kwargs.keys(), map(encode_arg, kwargs.values())))
@@ -227,16 +232,12 @@ class RLambda:
     # Attribute access
 
     def __getattribute__(self, key):
-        if not isinstance(key, str):
-            raise TypeError()
         if key.startswith('_'):
             return super().__getattribute__(key)
         return self._attr_op(key)
 
 
     def __setattr__(self, key, value):
-        if not isinstance(key, str):
-            raise TypeError()
         if not key.startswith('_'):
             raise KeyError()
         super().__setattr__(key, value)
