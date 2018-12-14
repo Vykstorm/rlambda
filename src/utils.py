@@ -5,6 +5,7 @@ This module provides helper routines for the rest of the modules in this library
 
 from types import FunctionType
 
+
 def iterable(x):
     '''
     Checks if an object is iterable or not.
@@ -41,6 +42,59 @@ def islambda(x):
     return isinstance(x, FunctionType) and x.__name__ == '<lambda>'
 
 
+def anyinstanceof(x, t):
+    '''
+    This method returns True if any item of the iterable x is an instance of any of the classes indicated in t (or any of their
+    subclasses)
+    False otherwise
+    :param x:
+    :param t:
+    :return:
+    '''
+    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
+    return any(map(lambda item: isinstance(item, t), x))
+
+def allinstanceof(x, t):
+    '''
+    This method returns True if all items in the iterable x are instances of any of the classes indicated in t (or any of their
+    subclasses)
+    :param x:
+    :param y:
+    :return:
+    '''
+    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
+    return all(map(lambda item: isinstance(item, t), x))
+
+
+def anyoftype(x, t):
+    '''
+    This method return true if any item in the iterable x is an instance of one of the classes indicated in t
+    :param x:
+    :param t:
+    :return:
+    '''
+    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
+    if not isinstance(t, tuple):
+        return any(map(lambda item: type(item) == t, x))
+    return any(map(lambda item: type(item) in t, x))
+
+
+def alloftype(x, t):
+    '''
+    This method returns true if all items in the iterable x are instance of one of the classes indicated in t
+    :param x:
+    :param t:
+    :return:
+    '''
+    assert iterable(x) and (isinstance(t, type) or (isinstance(t, tuple) and all(map(lambda item: isinstance(item, type), t))))
+    if not isinstance(t, tuple):
+        return all(map(lambda item: type(item) == t, x))
+    return all(map(lambda item: type(item) in t, x))
+
+
+
+
+
 def enclose(s, chars='()'):
     '''
     Enclose the given string with the characters indicated
@@ -48,13 +102,12 @@ def enclose(s, chars='()'):
     :param chars: Must be an iterable with two items that will be used to enclose the given string
     :return: The same string but enclosed with the given chars.
     '''
-    if not isinstance(s, str):
-        raise TypeError()
-    if not iterable(chars) or any(map(lambda c: not isinstance(c, str), chars)):
-        raise TypeError()
+    assert isinstance(s, str)
+    assert iterable(chars) and allinstanceof(chars, str)
+
     chars = tuple(chars)
-    if not (0 < len(chars) <= 2):
-        raise ValueError()
+    assert 0 < len(chars) <= 2
+
     if len(chars) == 1:
         chars = 2 * chars
     return chars[0] + s + chars[1]

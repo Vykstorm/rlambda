@@ -9,7 +9,7 @@ from itertools import count, chain
 from types import FunctionType, LambdaType, BuiltinFunctionType
 from inspect import isclass
 import operator
-from src.utils import enclose, iterable
+from src.utils import enclose, iterable, anyoftype, alloftype, anyinstanceof, allinstanceof
 
 
 class Variable(ast.Name):
@@ -17,8 +17,7 @@ class Variable(ast.Name):
     This kind of node represents a named variable
     '''
     def __init__(self, name):
-        if not isinstance(name, str):
-            raise TypeError()
+        assert isinstance(name, str)
         super().__init__(name, ast.Load())
 
     def __str__(self):
@@ -45,10 +44,7 @@ class Placeholder(ast.Name):
 
     @index.setter
     def index(self, x):
-        if not isinstance(x, int):
-            raise TypeError()
-        if x < 0:
-            raise ValueError()
+        assert isinstance(x, int) and x >= 0
         self._index = x
         self.id = '_' + repr(self._index)
 
@@ -72,8 +68,7 @@ class LiteralNumber(ast.Num, Literal):
     Represents a kind of node which holds a numeric literal (int or float)
     '''
     def __init__(self, value):
-        if not isinstance(value, (int, float)):
-            raise TypeError()
+        assert isinstance(value, (int, float))
         ast.Num.__init__(self, value)
         Literal.__init__(self)
 
@@ -85,8 +80,8 @@ class LiteralStr(ast.Str, Literal):
     Represents a kind of node which holds a string literal
     '''
     def __init__(self, value):
-        if not isinstance(value, str):
-            raise TypeError()
+        assert isinstance(value, str)
+
         ast.Str.__init__(self, value)
         Literal.__init__(self)
 
@@ -99,8 +94,8 @@ class LiteralBytes(ast.Bytes, Literal):
     Represents a kind of node which holds a bytes literal
     '''
     def __init__(self, value):
-        if not isinstance(value, bytes):
-            raise TypeError()
+        assert isinstance(value, bytes)
+
         ast.Bytes.__init__(self, value)
         Literal.__init__(self)
 
@@ -125,8 +120,8 @@ class LiteralBool(ast.NameConstant, Literal):
     Represents a node which holds either True/False literal
     '''
     def __init__(self, value):
-        if value is not True and value is not False:
-            raise TypeError()
+        assert value is True or value is False
+
         ast.NameConstant.__init__(self, value)
         Literal.__init__(self)
 
@@ -378,11 +373,7 @@ class UnaryOperation(ast.UnaryOp):
         :param op: Must be a unary operator
         :param operand: Must be the operand (another AST node)
         '''
-        if not isinstance(op, ast.unaryop):
-            raise TypeError()
-
-        if not isinstance(operand, ast.AST):
-            raise TypeError()
+        assert isinstance(op, ast.unaryop) and isinstance(operand, ast.AST)
 
         super().__init__(op, operand)
 
@@ -401,10 +392,9 @@ class BinaryOperation(ast.BinOp):
         :param op: A binary operator
         :param right: Right operand
         '''
-        if not isinstance(left, ast.AST) or not isinstance(right, ast.AST):
-            raise TypeError()
-        if not isinstance(op, ast.operator):
-            raise TypeError()
+        assert isinstance(left, ast.AST) and isinstance(right, ast.AST)
+        assert isinstance(op, ast.operator)
+
         super().__init__(left, op, right)
 
     def __str__(self):
@@ -426,20 +416,12 @@ class CompareOperation(ast.Compare):
         :param right: The second left most operand
         :param args: An optional list of aditional pairs of operand/operator
         '''
-        if len(args) % 2 != 0:
-            raise ValueError()
-
+        assert len(args) % 2 == 0
 
         operands = (left,) + args[1::2] + (right,)
         operators = (op,) + args[0::2]
 
-        for operand in operands:
-            if not isinstance(operand, ast.AST):
-                raise TypeError()
-
-        for operator in operators:
-            if not isinstance(operator, ast.cmpop):
-                raise TypeError()
+        assert allinstanceof(operands, ast.AST) and allinstanceof(operators, ast.cmpop)
 
         super().__init__(operands[0], list(operators), list(operands[1:]))
 
@@ -458,8 +440,8 @@ class Index(ast.Index):
     This node represents an index (for simple subscripting with a single value)
     '''
     def __init__(self, value):
-        if not isinstance(value, ast.AST):
-            raise TypeError()
+        assert isinstance(value, ast.AST)
+
         super().__init__(value)
 
     def __str__(self):
@@ -471,12 +453,10 @@ class Slice(ast.Slice):
     This node represents a regular slice (for subscripting)
     '''
     def __init__(self, lower, upper, step):
-        if not isinstance(lower, ast.AST) and lower is not None:
-            raise TypeError()
-        if not isinstance(upper, ast.AST) and upper is not None:
-            raise TypeError()
-        if not isinstance(step, ast.AST) and step is not None:
-            raise TypeError()
+        assert isinstance(lower, ast.AST) or lower is not None
+        assert isinstance(upper, ast.AST) or upper is not None
+        assert isinstance(step, ast.AST) or step is not None
+
         super().__init__(lower, upper, step)
 
     def __str__(self):
@@ -495,8 +475,7 @@ class ExtendedSlice(ast.ExtSlice):
         Initializes this instance
         :param args: Must be sequence of Slice and Index nodes
         '''
-        if any(map(lambda arg: not isinstance(arg, (Slice, Index)), args)):
-            raise TypeError()
+        assert allinstanceof(args, (Slice, Index))
 
         args = list(args)
         super().__init__(args)
@@ -516,10 +495,8 @@ class SubscriptOperation(ast.Subscript):
         :param value: The node to be subscripted
         :param slice: An instance of ast.Index, ast.Slice or ast.ExtSlice
         '''
-        if not isinstance(value, ast.AST):
-            raise TypeError()
-        if not isinstance(index, (ast.Index, ast.Slice, ast.ExtSlice)):
-            raise TypeError()
+        assert isinstance(value, ast.AST)
+        assert isinstance(index, (ast.Index, ast.Slice, ast.ExtSlice))
 
         super().__init__(value, index, ast.Load())
 
@@ -538,10 +515,7 @@ class AttributeOperation(ast.Attribute):
         :param value: Must be another node (representing the object being accessed)
         :param attr: Must be a string with the name of the attribute
         '''
-        if not isinstance(value, ast.AST):
-            raise TypeError()
-        if not isinstance(attr, str):
-            raise TypeError()
+        assert isinstance(value, ast.AST) and isinstance(attr, str)
 
         super().__init__(value, attr, ast.Load())
 
@@ -560,16 +534,9 @@ class CallOperation(ast.Call):
         :param args: Is a list of arguments (each of them is a node)
         :param kwargs: Is a dictionary that indicates keyword arguments (keys are strings and values are nodes)
         '''
-        if not isinstance(func, ast.AST):
-            raise TypeError()
-
-        if any(map(lambda arg: not isinstance(arg, ast.AST), args)):
-            raise TypeError()
-
-        if any(map(lambda key: not isinstance(key, str), kwargs.keys())):
-            raise TypeError()
-        if any(map(lambda value: not isinstance(value, ast.AST), kwargs.values())):
-            raise TypeError()
+        assert isinstance(func, ast.AST)
+        assert allinstanceof(args, ast.AST)
+        assert allinstanceof(kwargs.keys(), str) and allinstanceof(kwargs.values(), ast.AST)
 
         super().__init__(func, list(args), [ast.keyword(key, value) for key, value in kwargs.items()])
 
@@ -587,14 +554,9 @@ class Lambda(ast.Lambda):
     This node represents a lambda object definition with only positional arguments
     '''
     def __init__(self, args, body):
-        if not iterable(args):
-            raise TypeError()
+        assert iterable(args) and isinstance(body, ast.AST)
         args = list(args)
-        if len(args) == 0:
-            raise ValueError()
-
-        if not isinstance(body, ast.AST):
-            raise TypeError()
+        assert len(args) > 0
 
         args = list(map(lambda arg: ast.arg(arg, None), args))
 
@@ -626,8 +588,8 @@ class Expression(ast.Expression):
         :param body: Must be another node (it will be the body of this expression node)
         :param vars: An optional argument
         '''
-        if not isinstance(body, ast.AST):
-            raise TypeError()
+        assert isinstance(body, ast.AST)
+
         super().__init__(body)
 
     def __str__(self):

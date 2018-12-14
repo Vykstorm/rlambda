@@ -18,13 +18,14 @@ _funcs.update(math.__dict__)
 _builtins = SimpleNamespace(**_funcs)
 
 
-
 def _build_wrappers(*args):
+    isinstance = _builtins.isinstance
+    any, map, str = _builtins.any, _builtins.map, _builtins.str
+    hasattr, getattr = _builtins.hasattr, _builtins.getattr
 
     def _build_wrapper(funcname):
-        func = _builtins.__getattribute__(funcname)
-        isinstance = _builtins.isinstance
-        any, map = _builtins.any, _builtins.map
+        assert isinstance(funcname, str) and hasattr(_builtins, funcname)
+        func = getattr(_builtins, funcname)
 
         @wraps(func)
         def _wrapper(*args, **kwargs):
@@ -36,7 +37,6 @@ def _build_wrappers(*args):
 
     for arg in args:
         _build_wrapper(arg)
-
 
 
 # Built-in wrappers
