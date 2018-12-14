@@ -2,7 +2,6 @@
 
 from src.utils import iterable, allinstanceof, anyinstanceof, instanceofchecker
 import ast
-from types import FunctionType
 import operator
 from functools import reduce
 from itertools import chain

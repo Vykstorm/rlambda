@@ -7,7 +7,6 @@ Additional functions to operate with rlambdas
 
 import builtins
 import math
-import operator
 from types import SimpleNamespace
 from functools import wraps
 from itertools import chain

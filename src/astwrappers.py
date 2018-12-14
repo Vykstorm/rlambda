@@ -9,7 +9,7 @@ from itertools import count, chain
 from types import FunctionType, LambdaType, BuiltinFunctionType
 from inspect import isclass
 import operator
-from src.utils import enclose, iterable, anyoftype, alloftype, anyinstanceof, allinstanceof
+from src.utils import enclose, iterable, allinstanceof
 
 
 class Variable(ast.Name):
