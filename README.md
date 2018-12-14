@@ -1,6 +1,7 @@
 
 **rlambda library**
 
+
 This library written in python is aimed to provide the next features:
 - Recursive construction of lambda function objects with regular python epxression
 statements
@@ -8,6 +9,7 @@ statements
 - Creation of lambda objects that can be formatted as strings to visualize
 its code.
 
+#
 
 
 The next code is an example that shows how to construct a simple rlambda object
@@ -30,6 +32,7 @@ They will have the same signature and evaluation result...
 ```
 
 
+#
 
 
 Printing a regular lambda in your console will look something like this...
@@ -40,10 +43,17 @@ Printing a regular lambda in your console will look something like this...
 ```
 
 But rlambda can fetch more information about itself...
-```
+```python
 from rlambda.abc import x
 >>> x * 2
 x : x * 2
 ``` 
+It prints the function body and its parameters
 
+
+#
+
+Few usage examples can be found at **examples/** directory
+
+Under **docs/**, you can take a look at few ipython notebooks that explains in more detail, the features of this library with interactive code examples.
 
