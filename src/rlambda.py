@@ -10,11 +10,22 @@ import builtins
 
 
 class RLambda:
+    '''
+    An instance of this class emulate a lambda function object. It can be called and also can be used
+    to build another rlambda instances recursively using arithmetic/bitwise and comparision operators among others.
+    Check the docs and examples to see all the features of this class.
+    '''
     def __init__(self, inputs, body):
+        '''
+        Initializes this instance.
+        :param inputs: Must be a list of positional parameter names for this rlambda function instance.
+        They must follow the python variable naming convention and names must be unique.
+        :param body: Its an AST node (an instance of class ast.AST) that will be the body of this rlambda object.
+        '''
         assert iterable(inputs) and allinstanceof(inputs, str)
         assert isinstance(body, ast.AST)
 
-        inputs = tuple(inputs)
+        inputs = frozenset(inputs)
         assert len(inputs) > 0
 
         self._inputs = tuple(sorted(inputs, key=str.lower))
@@ -38,10 +49,19 @@ class RLambda:
 
 
     def __call__(self, *args, **kwargs):
+        '''
+        Calls this rlambda object with the given arguments
+        :param args: Positional arguments
+        :param kwargs: Keyword arguments
+        :return: Returns the result of the call to this rlambda object
+        '''
         self._build_func()
         return self._func(*args, **kwargs)
 
     def __str__(self):
+        '''
+        :return: Stringifies this instance
+        '''
         self._build_expr()
         return str(self._expr)
 
@@ -143,7 +163,10 @@ class RLambda:
         return self._call_op(builtins.abs, self)
 
 
-    # Arithmetic operations
+    '''
+    rlambdas can be operated with other rlambda intances or any other kind of variable with arithmetic operators.
+    The result of such operations are always other rlambda objects.
+    '''
 
     def __neg__(self):
         return self._unary_op(UnarySub)
@@ -181,7 +204,10 @@ class RLambda:
     def __abs__(self):
         return self._abs_op()
 
-    # Bitwise operators
+
+    '''
+    rlambdas also support bitwise operations...
+    '''
 
     def __lshift__(self, other):
         return self._binary_op(LShift, other)
@@ -199,7 +225,9 @@ class RLambda:
         return self._binary_op(BitXor, other)
 
 
-    # Comparision operators
+    '''
+    And logical comparision operations too
+    '''
 
     def __eq__(self, other):
         return self._compare_op(EqualThan, other)
@@ -219,6 +247,10 @@ class RLambda:
     def __ge__(self, other):
         return self._compare_op(GreaterEqualThan, other)
 
+
+    '''
+    Misc operators
+    '''
 
     # Attribute access
 
