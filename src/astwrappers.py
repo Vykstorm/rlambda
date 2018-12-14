@@ -1,6 +1,7 @@
 
 '''
-This module provides functions and class helpers to build ast expression nodes
+This module provides classes that are wrappers of different kind of AST nodes that are used later by this library
+to build rlambdas objects.
 '''
 
 import ast
