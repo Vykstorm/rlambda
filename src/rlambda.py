@@ -1,6 +1,6 @@
 
 
-from src.utils import iterable, allinstanceof, anyinstanceof, instanceofchecker
+from src.utils import anyinstanceof, instanceofchecker
 from src.astwrappers import *
 import ast
 import operator
