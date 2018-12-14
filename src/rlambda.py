@@ -1,6 +1,6 @@
 
 
-from src.utils import iterable, allinstanceof, anyinstanceof
+from src.utils import iterable, allinstanceof, anyinstanceof, instanceofchecker
 import ast
 from types import FunctionType
 import operator
@@ -137,9 +137,8 @@ class RLambda:
 
         inputs = reduce(
             operator.add,
-            map(operator.attrgetter('_inputs'),
-                filter(lambda arg: isinstance(arg, RLambda), args + tuple(kwargs.values()))))
-
+            map(operator.attrgetter('_inputs'), filter(instanceofchecker(RLambda), chain(args, kwargs.values())))
+        )
         args = tuple(map(encode_arg, args))
         kwargs = dict(zip(kwargs.keys(), map(encode_arg, kwargs.values())))
 
