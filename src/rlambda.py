@@ -246,3 +246,14 @@ class RLambda:
 
     def __getitem__(self, item):
         return self._subscript_op(item)
+
+
+
+class RLambdaIdentity(RLambda):
+    def __init__(self, input):
+        assert isinstance(input, str)
+        input = str.lower(input)
+        super().__init__(
+            inputs=(input,),
+            body=Variable(input)
+        )
