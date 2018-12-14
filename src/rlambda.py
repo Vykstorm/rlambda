@@ -1,19 +1,12 @@
 
 
 from src.utils import iterable, allinstanceof, anyinstanceof, instanceofchecker
+from src.astwrappers import *
 import ast
 import operator
 from functools import reduce
 from itertools import chain
 import builtins
-
-from src.astwrappers import Expression, Lambda, Variable, Placeholder, UnaryOperator, BinaryOperator, CompareOperator
-from src.astwrappers import Index,Slice, ExtendedSlice
-from src.astwrappers import encode_value
-from src.astwrappers import BinaryOperation, UnaryOperation, CompareOperation, AttributeOperation, CallOperation, SubscriptOperation
-from src.astwrappers import UnaryAdd, UnarySub, Invert
-from src.astwrappers import Add, Sub, Mult, Div, FloorDiv, Mod, Pow, LShift, RShift, BitOr, BitAnd, BitXor, MatMul
-from src.astwrappers import EqualThan, NotEqualThan, GreaterThan, GreaterEqualThan, LowerThan, LowerEqualThan
 
 
 class RLambda:
