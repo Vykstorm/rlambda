@@ -9,10 +9,11 @@ statements
 - Creation of lambda objects that can be formatted as strings to visualize
 its code.
 
-Its implementation mostly relies on the standard python "ast" module introduced in version 2.6
-#
+Its implementation mostly relies on the standard python "ast" module introduced in version 2.6, but for now
+its only tested on versions >= 3.6
 
-You can install it with the setup.py script provided. Be sure that your python version is >=3.6
+#
+You can install it running the script setup.py provided
 ```
 git clone https://github.com/Vykstorm/rlambda.git
 cd rlambda
