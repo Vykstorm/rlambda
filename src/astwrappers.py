@@ -454,9 +454,9 @@ class Slice(ast.Slice):
     This node represents a regular slice (for subscripting)
     '''
     def __init__(self, lower, upper, step):
-        assert isinstance(lower, ast.AST) or lower is not None
-        assert isinstance(upper, ast.AST) or upper is not None
-        assert isinstance(step, ast.AST) or step is not None
+        assert isinstance(lower, ast.AST) or lower is None
+        assert isinstance(upper, ast.AST) or upper is None
+        assert isinstance(step, ast.AST) or step is None
 
         super().__init__(lower, upper, step)
 
