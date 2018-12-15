@@ -185,9 +185,6 @@ class RLambda:
     def __pos__(self):
         return self._unary_op(UnaryAdd)
 
-    def __invert__(self):
-        return self._unary_op(Invert)
-
     def __add__(self, other):
         return self._binary_op(Add, other)
 
@@ -219,6 +216,9 @@ class RLambda:
     '''
     rlambdas also support bitwise operations...
     '''
+
+    def __invert__(self):
+        return self._unary_op(Invert)
 
     def __lshift__(self, other):
         return self._binary_op(LShift, other)
