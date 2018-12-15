@@ -48,6 +48,14 @@ class RLambda:
             self._build_expr()
             self._func = self._expr.eval()
 
+    @property
+    def __wrapped__(self):
+        '''
+        :return: Returns an equivalent lambda function equivalent to this rlambda object. This method can be used
+        to retrieve the signature of this instance and fetch its parameters.
+        '''
+        self._build_func()
+        return self._func
 
     def __call__(self, *args, **kwargs):
         '''
@@ -68,11 +76,6 @@ class RLambda:
 
     def __repr__(self):
         return str(self)
-
-    @property
-    def __wrapped__(self):
-        self._build_func()
-        return self._func
 
 
 
