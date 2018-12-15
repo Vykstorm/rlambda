@@ -47,7 +47,7 @@ set = _build_wrapper(_builtins.set)
 frozenset = _build_wrapper(_builtins.frozenset)
 min = _build_wrapper(_builtins.min)
 max = _build_wrapper(_builtins.max)
-
+range = _build_wrapper(_builtins.range)
 
 
 # Math function wrappers
