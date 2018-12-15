@@ -34,6 +34,7 @@ class RLambda:
         self._func = None
         self.__name__ = '<rlambda>'
 
+
     def _build_expr(self):
         if self._expr is None:
             self._expr = Expression(
@@ -67,6 +68,13 @@ class RLambda:
 
     def __repr__(self):
         return str(self)
+
+    @property
+    def __wrapped__(self):
+        self._build_func()
+        return self._func
+
+
 
     def _binary_op(self, op, other):
         assert isinstance(op, BinaryOperator)
