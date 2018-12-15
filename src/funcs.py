@@ -10,7 +10,7 @@ import math
 from types import SimpleNamespace
 from functools import wraps
 from itertools import chain
-from src.rlambda import RLambda
+from .rlambda import RLambda
 
 _funcs = dict(builtins.__dict__)
 _funcs.update(math.__dict__)

@@ -1,6 +1,6 @@
 
 
-from src.rlambda import RLambdaIdentity
+from .rlambda import RLambdaIdentity
 
 
 '''

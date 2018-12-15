@@ -1,7 +1,7 @@
 
 
-from src.utils import anyinstanceof, instanceofchecker
-from src.astwrappers import *
+from .utils import anyinstanceof, instanceofchecker
+from .astwrappers import *
 import ast
 import operator
 from functools import reduce
