@@ -32,7 +32,7 @@ class RLambda:
         self._body = body
         self._expr = None
         self._func = None
-
+        self.__name__ = '<rlambda>'
 
     def _build_expr(self):
         if self._expr is None:
