@@ -363,8 +363,15 @@ GreaterEqualThan = GreaterEqualThan()
 
 
 
+class Operation:
+    '''
+    Represents any kind of operation
+    '''
+    pass
 
-class UnaryOperation(ast.UnaryOp):
+
+
+class UnaryOperation(ast.UnaryOp, Operation):
     '''
     This kind of node represents a unary operation which involves one operand and one unary operator.
     '''
@@ -376,13 +383,15 @@ class UnaryOperation(ast.UnaryOp):
         '''
         assert isinstance(op, ast.unaryop) and isinstance(operand, ast.AST)
 
-        super().__init__(op, operand)
+        ast.UnaryOp.__init__(self, op, operand)
+        Operation.__init__(self)
 
     def __str__(self):
         return str(self.op) +\
                (str(self.operand) if isinstance(self.operand, (Literal, Variable, CallOperation)) else enclose(str(self.operand), '()'))
 
-class BinaryOperation(ast.BinOp):
+
+class BinaryOperation(ast.BinOp, Operation):
     '''
     This kind of node represents a binary operation which involves two operands and one binary operator
     '''
@@ -396,14 +405,15 @@ class BinaryOperation(ast.BinOp):
         assert isinstance(left, ast.AST) and isinstance(right, ast.AST)
         assert isinstance(op, ast.operator)
 
-        super().__init__(left, op, right)
+        ast.BinOp.__init__(self, left, op, right)
+        Operation.__init__(self)
 
     def __str__(self):
         format_operand = lambda x: str(x) if isinstance(x, (Literal, Variable, Placeholder, CallOperation)) else enclose(str(x), '()')
         return ' '.join((format_operand(self.left), str(self.op), format_operand(self.right)))
 
 
-class CompareOperation(ast.Compare):
+class CompareOperation(ast.Compare, Operation):
     '''
     This kind of node represents a comparision operation. Involves 2 ore more operands and 2 or more comparision operators
     e.g:
@@ -424,7 +434,8 @@ class CompareOperation(ast.Compare):
 
         assert allinstanceof(operands, ast.AST) and allinstanceof(operators, ast.cmpop)
 
-        super().__init__(operands[0], list(operators), list(operands[1:]))
+        ast.Compare.__init__(self, operands[0], list(operators), list(operands[1:]))
+        Operation.__init__(self)
 
 
     def __str__(self):
@@ -486,7 +497,7 @@ class ExtendedSlice(ast.ExtSlice):
         return ','.join(map(str, dims))
 
 
-class SubscriptOperation(ast.Subscript):
+class SubscriptOperation(ast.Subscript, Operation):
     '''
     Its a node that represents a subscript operation.
     '''
@@ -499,14 +510,15 @@ class SubscriptOperation(ast.Subscript):
         assert isinstance(value, ast.AST)
         assert isinstance(index, (ast.Index, ast.Slice, ast.ExtSlice))
 
-        super().__init__(value, index, ast.Load())
+        ast.Subscript.__init__(self, value, index, ast.Load())
+        Operation.__init__(self)
 
     def __str__(self):
         return str(self.value) + enclose(str(self.slice), '[]')
 
 
 
-class AttributeOperation(ast.Attribute):
+class AttributeOperation(ast.Attribute, Operation):
     '''
     This node represents an attribute access node operation
     '''
@@ -518,13 +530,14 @@ class AttributeOperation(ast.Attribute):
         '''
         assert isinstance(value, ast.AST) and isinstance(attr, str)
 
-        super().__init__(value, attr, ast.Load())
+        ast.Attribute.__init__(self, value, attr, ast.Load())
+        Operation.__init__(self)
 
     def __str__(self):
         return '.'.join(map(str, (str(self.value), self.attr)))
 
 
-class CallOperation(ast.Call):
+class CallOperation(ast.Call, Operation):
     '''
     Kind of node which defines a function call.
     '''
@@ -539,8 +552,8 @@ class CallOperation(ast.Call):
         assert allinstanceof(args, ast.AST)
         assert allinstanceof(kwargs.keys(), str) and allinstanceof(kwargs.values(), ast.AST)
 
-        super().__init__(func, list(args), [ast.keyword(key, value) for key, value in kwargs.items()])
-
+        ast.Call.__init__(self, func, list(args), [ast.keyword(key, value) for key, value in kwargs.items()])
+        Operation.__init__(self)
 
     def __str__(self):
         func = self.func
