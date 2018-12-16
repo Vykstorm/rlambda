@@ -129,3 +129,38 @@ def enclose(s, chars='()'):
     if len(chars) == 1:
         chars = 2 * chars
     return chars[0] + s + chars[1]
+
+
+def slice_to_str(x):
+    '''
+    Stringifies a slice object.
+    :param x: Must be an instance of the class slice
+    :return:
+    '''
+    assert isinstance(x, slice)
+
+    start, stop, step = tuple(map(lambda value: str(value) if value is not None else None, (x.start, x.stop, x.step)))
+    sep = ':'
+
+    if start is None and stop is None and step is None:
+        items = sep,
+
+    elif step is None:
+        if stop is None:
+            items = start, sep
+        else:
+            if start is None:
+                items = sep, stop
+            else:
+                items = start, sep, stop
+    else:
+        if start is None and stop is None:
+            items = sep, sep, step
+        elif start is None:
+            items = sep, stop, sep, step
+        elif stop is None:
+            items = start, sep, sep, step
+        else:
+            items = start, sep, stop, sep, step
+
+    return ''.join(items)
