@@ -136,6 +136,12 @@ class RLambda:
         def encode_extslice(x):
             return ExtendedSlice(*[encode_slice(item) if isinstance(item, slice) else encode_index(item) for item in x])
 
+        if isinstance(item, RLambda):
+            return RLambda(
+                inputs=self._inputs+item._inputs,
+                body=SubscriptOperation(self._body, Index(item._body))
+            )
+
         if isinstance(item, slice):
             index = encode_slice(item)
         elif isinstance(item, tuple):
