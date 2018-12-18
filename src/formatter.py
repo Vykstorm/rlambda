@@ -283,6 +283,8 @@ class RLambdaFormatter:
         if value is Ellipsis:
             return '...'
 
+        if isinstance(value, (str, bytes)):
+            return str(value)
 
         return repr(value)
 
