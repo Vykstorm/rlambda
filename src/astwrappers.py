@@ -5,37 +5,45 @@ to build rlambdas objects.
 '''
 
 import ast
-from functools import reduce
 from itertools import count, chain
-from types import FunctionType, LambdaType, BuiltinFunctionType
-from inspect import isclass
 import operator
 from .utils import enclose, iterable, allinstanceof
 
 
-class Variable(ast.Name):
+class Node:
+    '''
+    Represents any kind of node
+    '''
+    def __str__(self):
+        return RLambdaFormatter().format_node(self)
+
+    def __repr__(self):
+        return str(self)
+
+class Variable(ast.Name, Node):
     '''
     This kind of node represents a named variable
     '''
+
     def __init__(self, name):
         assert isinstance(name, str)
-        super().__init__(name, ast.Load())
-
-    def __str__(self):
-        return self.id
+        ast.Name.__init__(self, name, ast.Load())
+        Node.__init__(self)
 
 
-class Placeholder(ast.Name):
+class Placeholder(ast.Name, Node):
     '''
     This kind of node represents a placeholder variable
     '''
+
     def __init__(self, value):
         '''
         Initializes this instance.
         :param value: Arbtitrary value this variable holds
         '''
 
-        super().__init__('_0', ast.Load())
+        ast.Name.__init__(self, '_0', ast.Load())
+        Node.__init__(self)
         self.value = value
         self._index = 0
 
@@ -49,20 +57,14 @@ class Placeholder(ast.Name):
         self._index = x
         self.id = '_' + repr(self._index)
 
-    def __str__(self):
-        value = self.value
-        if isinstance(value, (FunctionType, LambdaType, BuiltinFunctionType)):
-            return value.__qualname__
-        if isclass(value):
-            return value.__name__
-        return str(value)
 
-
-class Literal:
+class Literal(Node):
     '''
     Represents any kind of literal
     '''
     pass
+
+
 
 class LiteralNumber(ast.Num, Literal):
     '''
@@ -73,8 +75,6 @@ class LiteralNumber(ast.Num, Literal):
         ast.Num.__init__(self, value)
         Literal.__init__(self)
 
-    def __str__(self):
-        return repr(self.n)
 
 class LiteralStr(ast.Str, Literal):
     '''
@@ -85,9 +85,6 @@ class LiteralStr(ast.Str, Literal):
 
         ast.Str.__init__(self, value)
         Literal.__init__(self)
-
-    def __str__(self):
-        return repr(self.s)
 
 
 class LiteralBytes(ast.Bytes, Literal):
@@ -100,8 +97,6 @@ class LiteralBytes(ast.Bytes, Literal):
         ast.Bytes.__init__(self, value)
         Literal.__init__(self)
 
-    def __str__(self):
-        return repr(self.s)
 
 
 class LiteralEllipsis(ast.Ellipsis, Literal):
@@ -112,8 +107,6 @@ class LiteralEllipsis(ast.Ellipsis, Literal):
         ast.Ellipsis.__init__(self)
         Literal.__init__(self)
 
-    def __str__(self):
-        return '...'
 
 
 class LiteralBool(ast.NameConstant, Literal):
@@ -126,8 +119,7 @@ class LiteralBool(ast.NameConstant, Literal):
         ast.NameConstant.__init__(self, value)
         Literal.__init__(self)
 
-    def __str__(self):
-        return repr(self.value)
+
 
 class LiteralNone(ast.NameConstant, Literal):
     '''
@@ -136,9 +128,6 @@ class LiteralNone(ast.NameConstant, Literal):
     def __init__(self):
         ast.NameConstant.__init__(self, None)
         Literal.__init__(self)
-
-    def __str__(self):
-        return repr(None)
 
 
 
@@ -185,15 +174,15 @@ def encode_value(x):
     return Placeholder(value=x)
 
 
-class Operator:
+class Operator(Node):
     '''
     Represents an operator of any kind
     '''
+
     def __init__(self, symbol):
+        super().__init__()
         self.symbol = symbol
 
-    def __str__(self):
-        return str(self.symbol)
 
 class UnaryOperator(Operator):
     '''
@@ -214,7 +203,7 @@ class CompareOperator(Operator):
     pass
 
 
-# Unary operations
+# Unary operators
 
 class UnaryAdd(UnaryOperator, ast.UAdd):
     def __init__(self):
@@ -232,7 +221,7 @@ class Invert(UnaryOperator, ast.Invert):
         UnaryOperator.__init__(self, '~')
         ast.Invert.__init__(self)
 
-# Binary operations
+# Binary operators
 
 class Add(BinaryOperator, ast.Add):
     def __init__(self):
@@ -363,12 +352,11 @@ GreaterEqualThan = GreaterEqualThan()
 
 
 
-class Operation:
+class Operation(Node):
     '''
     Represents any kind of operation
     '''
     pass
-
 
 
 class UnaryOperation(ast.UnaryOp, Operation):
@@ -386,9 +374,6 @@ class UnaryOperation(ast.UnaryOp, Operation):
         ast.UnaryOp.__init__(self, op, operand)
         Operation.__init__(self)
 
-    def __str__(self):
-        return str(self.op) +\
-               (str(self.operand) if isinstance(self.operand, (Literal, Variable, CallOperation)) else enclose(str(self.operand), '()'))
 
 
 class BinaryOperation(ast.BinOp, Operation):
@@ -407,10 +392,6 @@ class BinaryOperation(ast.BinOp, Operation):
 
         ast.BinOp.__init__(self, left, op, right)
         Operation.__init__(self)
-
-    def __str__(self):
-        format_operand = lambda x: str(x) if isinstance(x, (Literal, Variable, Placeholder, CallOperation)) else enclose(str(x), '()')
-        return ' '.join((format_operand(self.left), str(self.op), format_operand(self.right)))
 
 
 class CompareOperation(ast.Compare, Operation):
@@ -438,29 +419,20 @@ class CompareOperation(ast.Compare, Operation):
         Operation.__init__(self)
 
 
-    def __str__(self):
-        format_operand = lambda x: str(x) if isinstance(x, (Literal, Variable, Placeholder, CallOperation)) else enclose(str(x), '()')
 
-        return ' '.join(
-            (format_operand(self.left),) +
-            reduce(operator.add, zip(map(str, self.ops), map(format_operand, self.comparators))))
-
-
-
-class Index(ast.Index):
+class Index(ast.Index, Node):
     '''
     This node represents an index (for simple subscripting with a single value)
     '''
     def __init__(self, value):
         assert isinstance(value, ast.AST)
 
-        super().__init__(value)
-
-    def __str__(self):
-        return str(self.value)
+        ast.Index.__init__(self, value)
+        Node.__init__(self)
 
 
-class Slice(ast.Slice):
+
+class Slice(ast.Slice, Node):
     '''
     This node represents a regular slice (for subscripting)
     '''
@@ -469,16 +441,12 @@ class Slice(ast.Slice):
         assert isinstance(upper, ast.AST) or upper is None
         assert isinstance(step, ast.AST) or step is None
 
-        super().__init__(lower, upper, step)
-
-    def __str__(self):
-        items = (self.lower, self.upper, self.step)
-        if self.lower is not None and self.upper is not None and self.step is None:
-            items = items[:-1]
-        return ':'.join(map(lambda x: str(x) if x is not None else '', items))
+        ast.Slice.__init__(self, lower, upper, step)
+        Node.__init__(self)
 
 
-class ExtendedSlice(ast.ExtSlice):
+
+class ExtendedSlice(ast.ExtSlice, Node):
     '''
     This node represents an extended slice (for subscripting)
     '''
@@ -490,11 +458,8 @@ class ExtendedSlice(ast.ExtSlice):
         assert allinstanceof(args, (Slice, Index))
 
         args = list(args)
-        super().__init__(args)
-
-    def __str__(self):
-        dims = self.dims
-        return ','.join(map(str, dims))
+        ast.ExtSlice.__init__(self, args)
+        Node.__init__(self)
 
 
 class SubscriptOperation(ast.Subscript, Operation):
@@ -513,9 +478,6 @@ class SubscriptOperation(ast.Subscript, Operation):
         ast.Subscript.__init__(self, value, index, ast.Load())
         Operation.__init__(self)
 
-    def __str__(self):
-        return str(self.value) + enclose(str(self.slice), '[]')
-
 
 
 class AttributeOperation(ast.Attribute, Operation):
@@ -532,9 +494,6 @@ class AttributeOperation(ast.Attribute, Operation):
 
         ast.Attribute.__init__(self, value, attr, ast.Load())
         Operation.__init__(self)
-
-    def __str__(self):
-        return '.'.join(map(str, (str(self.value), self.attr)))
 
 
 class CallOperation(ast.Call, Operation):
@@ -555,15 +514,9 @@ class CallOperation(ast.Call, Operation):
         ast.Call.__init__(self, func, list(args), [ast.keyword(key, value) for key, value in kwargs.items()])
         Operation.__init__(self)
 
-    def __str__(self):
-        func = self.func
-        args = self.args
-        kwargs = map(operator.attrgetter('arg', 'value'), self.keywords)
-
-        return str(func) + enclose(', '.join(chain(map(str, args), [key+'='+str(value) for key, value in kwargs])), '()')
 
 
-class Lambda(ast.Lambda):
+class Lambda(ast.Lambda, Node):
     '''
     This node represents a lambda object definition with only positional arguments
     '''
@@ -572,9 +525,11 @@ class Lambda(ast.Lambda):
         args = list(args)
         assert len(args) > 0
 
+
         args = list(map(lambda arg: ast.arg(arg, None), args))
 
-        super().__init__(
+        Node.__init__(self)
+        ast.Lambda.__init__(self,
             body=body,
             args=ast.arguments(
                 args=args,
@@ -587,12 +542,8 @@ class Lambda(ast.Lambda):
         )
 
 
-    def __str__(self):
-        args = map(operator.attrgetter('arg'), self.args.args)
-        return ', '.join(args) + ' : ' + str(self.body)
 
-
-class Expression(ast.Expression):
+class Expression(ast.Expression, Node):
     '''
     This node represents an expression (a wrapper of ast.Expression)
     '''
@@ -604,10 +555,8 @@ class Expression(ast.Expression):
         '''
         assert isinstance(body, ast.AST)
 
-        super().__init__(body)
-
-    def __str__(self):
-        return str(self.body)
+        ast.Expression.__init__(self, body)
+        Node.__init__(self)
 
 
     @property
@@ -641,3 +590,6 @@ class Expression(ast.Expression):
         globals=dict(zip(map(operator.attrgetter('id'), placeholders), map(operator.attrgetter('value'), placeholders)))
         code = _compile()
         return eval(code, globals)
+
+
+from .formatter import RLambdaFormatter
