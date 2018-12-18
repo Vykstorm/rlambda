@@ -4,6 +4,7 @@ This module provides helper routines for the rest of the modules in this library
 '''
 
 from types import FunctionType
+from inspect import isclass
 
 
 def iterable(x):
@@ -111,6 +112,45 @@ def typechecker(t):
         return lambda x: type(x) == t
     t = tuple(t)
     return lambda x: type(x) in t
+
+def findinstanceof(x, t):
+    '''
+    Find and return the first item that satisfies the next predicate: isinstance(item, t)
+    Raises TypeError() if there isnt an item that satisfies the condition
+    :param t: Is a type or a tuple of types.
+    :return:
+    '''
+    assert isinstance(t, type) or (iterable(t) and len(tuple(t)) > 0 and all(map(lambda item: isinstance(item, type), t)))
+
+    for item in x:
+        if isinstance(item, t):
+            return item
+    raise TypeError()
+
+def findsubclassof(x, cls):
+    '''
+    Find and return the first item in the container x that satisfies the next predicate: isclass(item) and issubclass(item, cls)
+    Raises TypeError() if there isnt an item that satisfies the condition
+    '''
+    assert iterable(x) and isclass(cls)
+
+    for item in x:
+        if isclass(item) and issubclass(item, cls):
+            return item
+    raise TypeError()
+
+def findsuperclassof(x, cls):
+    '''
+    Find and return the first item in the container x that satisfies the next predicate: isclass(item) and issubclass(cls, item)
+    Raises TypeError() if there isnt an item that satisfies the condition
+    '''
+    assert iterable(x) and isclass(cls)
+
+    for item in x:
+        if isclass(item) and issubclass(cls, item):
+            return item
+    raise TypeError()
+
 
 
 def enclose(s, chars='()'):
