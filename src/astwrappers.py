@@ -15,7 +15,7 @@ class Node:
     Represents any kind of node
     '''
     def __str__(self):
-        return RLambdaFormatter()._format_node(self)
+        return DefaultRLambdaFormatter()._format_node(self)
 
     def __repr__(self):
         return str(self)
@@ -613,4 +613,4 @@ class Expression(ast.Expression, Node):
         return eval(code, globals)
 
 
-from .formatter import RLambdaFormatter
+from .formatter import DefaultRLambdaFormatter

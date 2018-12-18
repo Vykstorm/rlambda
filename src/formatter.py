@@ -14,7 +14,7 @@ from .astwrappers import Operation, UnaryOperation, BinaryOperation, CompareOper
     SubscriptOperation, AttributeOperation, CallOperation
 from .singleton import singleton
 
-@singleton
+
 class RLambdaFormatter:
     '''
     This class is used to stringify rlambda objects. You can subclass it to change its default behaviour.
@@ -410,3 +410,11 @@ class RLambdaFormatter:
         '''
         return enclose(expr, '()')
 
+
+
+@singleton
+class DefaultRLambdaFormatter(RLambdaFormatter):
+    '''
+    This class will be the default rlambda formatter. It can be used as a singleton.
+    '''
+    pass
