@@ -17,6 +17,10 @@ _funcs.update(math.__dict__)
 _builtins = SimpleNamespace(**_funcs)
 
 
+
+# Built-in overrides
+
+
 def _build_wrapper(func):
     assert callable(func)
 
@@ -33,24 +37,10 @@ def _build_wrapper(func):
     return _wrapper
 
 
-# Built-in wrappers
 
-len = _build_wrapper(_builtins.len)
-int = _build_wrapper(_builtins.int)
-float = _build_wrapper(_builtins.float)
-bool = _build_wrapper(_builtins.bool)
-str = _build_wrapper(_builtins.str)
-complex = _build_wrapper(_builtins.complex)
-list = _build_wrapper(_builtins.list)
-tuple = _build_wrapper(_builtins.tuple)
-set = _build_wrapper(_builtins.set)
-frozenset = _build_wrapper(_builtins.frozenset)
+len = length = _build_wrapper(_builtins.len)
 min = _build_wrapper(_builtins.min)
 max = _build_wrapper(_builtins.max)
-range = _build_wrapper(_builtins.range)
-
-
-# Math function wrappers
 
 ceil = _build_wrapper(_builtins.ceil)
 copysign = _build_wrapper(_builtins.copysign)
@@ -59,7 +49,6 @@ factorial = _build_wrapper(_builtins.factorial)
 floor = _build_wrapper(_builtins.floor)
 fmod = _build_wrapper(_builtins.fmod)
 frexp = _build_wrapper(_builtins.frexp)
-fsum = _build_wrapper(_builtins.fsum)
 gcd = _build_wrapper(_builtins.gcd)
 isclose = _build_wrapper(_builtins.isclose)
 isfinite = _build_wrapper(_builtins.isfinite)
@@ -95,4 +84,7 @@ erf = _build_wrapper(_builtins.erf)
 erfc = _build_wrapper(_builtins.erfc)
 gamma = _build_wrapper(_builtins.gamma)
 lgamma = _build_wrapper(_builtins.lgamma)
+
+
+
 
