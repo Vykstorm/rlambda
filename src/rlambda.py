@@ -4,6 +4,7 @@ from .utils import anyinstanceof, instanceofchecker
 from .astwrappers import *
 import ast
 import operator
+from operator import attrgetter
 from functools import reduce
 from itertools import chain
 import builtins
@@ -147,34 +148,50 @@ class RLambda:
         '''
         This method is invoked when a subscripting operation is done on this rlambda object.
         '''
-        def encode_slice(x):
+
+        def encode_index(index):
+            if index is None:
+                return None
+            if isinstance(index, RLambda):
+                return index._body
+            return encode_value(index)
+
+        def index_op(index):
+            return Index(encode_index(index))
+
+        def slice_op(index):
+            assert isinstance(index, slice)
             return Slice(
-                encode_value(x.start) if x.start is not None else None,
-                encode_value(x.stop) if x.stop is not None else None,
-                encode_value(x.step) if x.step is not None else None)
-
-        def encode_index(x):
-            return Index(encode_value(x))
-
-        def encode_extslice(x):
-            return ExtendedSlice(*[encode_slice(item) if isinstance(item, slice) else encode_index(item) for item in x])
-
-        if isinstance(item, RLambda):
-            return RLambda(
-                inputs=self._inputs+item._inputs,
-                body=SubscriptOperation(self._body, Index(item._body))
+                *tuple(map(encode_index,
+                           (index.start, index.stop, index.step)))
             )
 
+        def extslice_op(indexes):
+            assert isinstance(indexes, tuple)
+            return ExtendedSlice(
+                *tuple(map(lambda index: slice_op(index) if isinstance(index, slice) else index_op(index),
+                           indexes))
+                )
+
+        def inputs(item):
+            if isinstance(item, RLambda):
+                return item._inputs
+            if isinstance(item, slice):
+                return inputs((item.start, item.stop, item.step))
+            if isinstance(item, tuple):
+                return reduce(operator.add, map(inputs, item))
+            return ()
+
         if isinstance(item, slice):
-            index = encode_slice(item)
+            index = slice_op(item)
         elif isinstance(item, tuple):
-            index = encode_extslice(item)
+            index = extslice_op(item)
         else:
-            index = encode_index(item)
+            index = index_op(item)
 
         return RLambda(
-            body=SubscriptOperation(self._body, index),
-            inputs=self._inputs
+            body = SubscriptOperation(self._body, index),
+            inputs = self._inputs+inputs(item)
         )
 
 
