@@ -352,6 +352,27 @@ GreaterEqualThan = GreaterEqualThan()
 
 
 
+# All unary operators
+unary_operators = (UnaryAdd, UnarySub, Invert)
+
+# All binary operators
+binary_operators = (
+    Add, Sub, Mult, Div, FloorDiv, Mod, Pow,
+    LShift, RShift, BitOr, BitAnd, BitXor,
+    MatMul
+)
+
+# All comparision operators
+compare_operators = (
+    EqualThan, NotEqualThan, LowerThan,
+    LowerEqualThan, GreaterThan, GreaterEqualThan
+)
+
+# This list contains all operators
+operators = unary_operators + binary_operators + compare_operators
+
+
+
 class Operation(Node):
     '''
     Represents any kind of operation
