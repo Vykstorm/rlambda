@@ -70,6 +70,17 @@ class RLambdaFormatter:
         formatter = formatters[findsuperclassof(formatters.keys(), type(node))]
         return formatter(node)
 
+    def _format_subnode(self, node):
+        composed = False
+        if isinstance(node, (UnaryOperation, BinaryOperation, CompareOperation)):
+            composed = True
+
+        s = self._format_node(node)
+        return s if not composed else self.format_precedence(s)
+
+
+
+
 
     def _format_variable(self, node):
         assert isinstance(node, Variable)
@@ -103,8 +114,6 @@ class RLambdaFormatter:
         return self.format_operator(node.symbol)
 
 
-
-
     def _format_index(self, index):
         return self._format_node(index.value)
 
@@ -112,9 +121,9 @@ class RLambdaFormatter:
     def _format_slice(self, index):
         return self.format_slice(
             slice(
-            None if index.lower is None else self._format_node(index.lower),
-            None if index.upper is None else self._format_node(index.upper),
-            None if index.step is None else self._format_node(index.step))
+            None if index.lower is None else self._format_subnode(index.lower),
+            None if index.upper is None else self._format_subnode(index.upper),
+            None if index.step is None else self._format_subnode(index.step))
         )
 
     def _format_extslice(self, indexes):
@@ -124,9 +133,6 @@ class RLambdaFormatter:
                     indexes.dims)
             )
         )
-
-
-
 
     def _format_operation(self, node):
         assert isinstance(node, Operation)
@@ -146,48 +152,47 @@ class RLambdaFormatter:
     def _format_unary_operation(self, node):
         assert isinstance(node, UnaryOperation)
         return self.format_unary_operation(
-            self._format_node(node.op),
-            self._format_node(node.operand)
+            self._format_subnode(node.op),
+            self._format_subnode(node.operand)
         )
 
     def _format_binary_operation(self, node):
         assert isinstance(node, BinaryOperation)
         return self.format_binary_operation(
-            self._format_node(node.left),
-            self._format_node(node.op),
-            self._format_node(node.right)
+            self._format_subnode(node.left),
+            self._format_subnode(node.op),
+            self._format_subnode(node.right)
         )
 
     def _format_compare_operation(self, node):
         assert isinstance(node, CompareOperation)
         items = tuple(
-            map(self._format_node, chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
+            map(self._format_subnode, chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
         return self.format_compare_operation(*items)
 
     def _format_subscript_operation(self, node):
         assert isinstance(node, SubscriptOperation)
         return self.format_subscript_operation(
-            self._format_node(node.value),
-            self._format_node(node.slice)
+            self._format_subnode(node.value),
+            self._format_subnode(node.slice)
         )
 
     def _format_getattr_operation(self, node):
         assert isinstance(node, AttributeOperation)
         return self.format_getattr_operation(
-            self._format_node(node.value),
+            self._format_subnode(node.value),
             node.attr
         )
 
     def _format_call_operation(self, node):
         assert isinstance(node, CallOperation)
-        return self.format_call_operation(
-            self._format_node(node.func),
-            *tuple(map(self._format_node, node.args)),
-            **dict(map(
-                lambda key, value: (key, self._format_node(value)),
-                map(attrgetter('arg', 'value'), node.keywords)
-            ))
 
+        return self.format_call_operation(
+            self._format_subnode(node.func),
+            *tuple(map(self._format_subnode, node.args)),
+            **dict(zip(
+                map(attrgetter('arg'), node.keywords),
+                map(lambda kwarg: self._format_subnode(kwarg.value), node.keywords)))
         )
 
     def _format_lambda(self, node):
@@ -372,7 +377,7 @@ class RLambdaFormatter:
         '''
         return func + enclose(', '.join(chain(args, [key+'='+value for key, value in kwargs.items()])), '()')
 
-    def format_expression_enclosed(self, expr):
+    def format_precedence(self, expr):
         '''
         Enclose the given expression node to show that its body should have higher precedence
         e.g:
