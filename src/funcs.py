@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from functools import wraps
 from itertools import chain
 from .rlambda import RLambda
+from .utils import anyinstanceof
 
 _funcs = dict(builtins.__dict__)
 _funcs.update(math.__dict__)
@@ -24,13 +25,9 @@ _builtins = SimpleNamespace(**_funcs)
 def _build_wrapper(func):
     assert callable(func)
 
-    isinstance = _builtins.isinstance
-    any, map, str = _builtins.any, _builtins.map, _builtins.str
-    hasattr, getattr = _builtins.hasattr, _builtins.getattr
-
     @wraps(func)
     def _wrapper(*args, **kwargs):
-        if any(map(lambda x: isinstance(x, RLambda), chain(args, kwargs.values()))):
+        if anyinstanceof(chain(args, kwargs.values()), RLambda):
             return RLambda._call_op(func, *args, **kwargs)
         return func(*args, **kwargs)
 
