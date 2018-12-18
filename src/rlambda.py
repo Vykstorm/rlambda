@@ -200,7 +200,7 @@ class RLambda:
     @staticmethod
     def _call_op(func, *args, **kwargs):
         assert callable(func)
-        assert anyinstanceof(chain(args, kwargs.values()), RLambda) and allinstanceof(kwargs.values(), str)
+        assert anyinstanceof(chain(args, kwargs.values()), RLambda) and allinstanceof(kwargs.keys(), str)
 
         encode_arg = lambda arg: encode_value(arg) if not isinstance(arg, RLambda) else arg._body
 
