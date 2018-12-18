@@ -341,18 +341,41 @@ class RLambdaFormatter:
 
 
     def format_index(self, index):
+        '''
+        Format an index node.
+        e.g:
+        Doing RLambdaFormatter().format( x[1] ) will invoke format_index('1') and trivially return '1'
+        Then format_subscript_operation('x', '1') is called to build the final string. It will return 'x[1]'
+        '''
         return index
 
 
     def format_slice(self, index):
+        '''
+        Format a slice node.
+        e.g:
+        Doing RLambdaFormatter().format( x[1:10:2] ) will call format_slice(slice('1', '10', '2')). The string
+        '1:10:2' will be returned. Then format_subscript_operation('x', '1:10:2') its called to build the final string, 'x[1:10:2]'
+        '''
         return slice_to_str(index)
 
 
     def format_extslice(self, indexes):
+        '''
+        Format a extended slice node
+        Doing RLambdaFormatter().format( x[1, 1:10] ) will invoke format_extslice('1', slice('1', '10'))
+        Such call will return the string '1, 1:10' which is later passed to format_subscript_operation.
+        It will be called like format_subscript_operation('x', '1, 1:10') and will return 'x[1, 1:10]'
+        '''
         return ', '.join(map(lambda x: x if not isinstance(x, slice) else slice_to_str(x), indexes))
 
 
     def format_subscript_operation(self, container, index):
+        '''
+        Format a subscript operation node.
+        Doing RLambdaFormatter().format( x[1, 1:10, 1:10:2] ) will call format_subscript_operation('x', '1, 1:10, 1:10:2')
+        and returns the string 'x[1, 1:10, 1:10:2]'
+        '''
         return container + enclose(index, '[]')
 
 
@@ -381,7 +404,7 @@ class RLambdaFormatter:
         '''
         Enclose the given expression node to show that its body should have higher precedence
         e.g:
-        format_expression_enclosed('x+1') -> "(x+1)"
+        format_precedence('x+1') -> "(x+1)"
         :param expr:
         :return:
         '''
