@@ -134,7 +134,7 @@ class RLambdaFormatter:
         formatters = {
             UnaryOperation: self._format_unary_operation,
             BinaryOperation: self._format_binary_operation,
-            CompareOperation: self._format_binary_operation,
+            CompareOperation: self._format_compare_operation,
             SubscriptOperation: self._format_subscript_operation,
             AttributeOperation: self._format_getattr_operation,
             CallOperation: self._format_call_operation
