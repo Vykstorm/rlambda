@@ -25,10 +25,17 @@ class RLambda:
         assert iterable(inputs) and allinstanceof(inputs, str)
         assert isinstance(body, ast.AST)
 
+        # Remove duplicate inputs
         inputs = frozenset(inputs)
+
+        # Make sure there is at least 1 input
         assert len(inputs) > 0
 
-        self._inputs = tuple(sorted(inputs, key=str.lower))
+        # Sort the inputs by name
+        inputs = tuple(sorted(inputs, key=str.lower))
+
+        # Set instance attributes
+        self._inputs = inputs
         self._body = body
         self._expr = None
         self._func = None
@@ -36,6 +43,7 @@ class RLambda:
 
 
     def _build_expr(self):
+        # Generate lambda ast node if not created yet
         if self._expr is None:
             self._expr = Expression(
                 Lambda(
@@ -44,6 +52,7 @@ class RLambda:
                 ))
 
     def _build_func(self):
+        # Build lambda function if not created yet
         if self._func is None:
             self._build_expr()
             self._func = self._expr.eval()
@@ -78,8 +87,10 @@ class RLambda:
         return str(self)
 
 
-
     def _binary_op(self, op, other):
+        '''
+        This method is called when a binary operation is made between this rlambda instance and any other object.
+        '''
         assert isinstance(op, BinaryOperator)
 
         if isinstance(other, RLambda):
@@ -94,6 +105,9 @@ class RLambda:
         )
 
     def _unary_op(self, op):
+        '''
+        This method is called when a unary operation is done with this rlambda instance
+        '''
         assert isinstance(op, UnaryOperator)
 
         return RLambda(
@@ -102,6 +116,9 @@ class RLambda:
         )
 
     def _compare_op(self, op, other):
+        '''
+        This method is called when a comparision operation is made between this rlambda instance and any other object.
+        '''
         assert isinstance(op, CompareOperator)
 
         if isinstance(other, RLambda):
@@ -116,6 +133,9 @@ class RLambda:
         )
 
     def _attr_op(self, key):
+        '''
+        Method called when a attribute access operation is made on this rlambda instance.
+        '''
         assert isinstance(key, str)
 
         return RLambda(
@@ -124,6 +144,9 @@ class RLambda:
         )
 
     def _subscript_op(self, item):
+        '''
+        This method is invoked when a subscripting operation is done on this rlambda object.
+        '''
         def encode_slice(x):
             return Slice(
                 encode_value(x.start) if x.start is not None else None,
@@ -177,6 +200,10 @@ class RLambda:
         )
 
     def _abs_op(self):
+        '''
+        This method is invoked when built-in function abs() is called with this rlambda instance as argument.
+        :return:
+        '''
         return self._call_op(builtins.abs, self)
 
 
