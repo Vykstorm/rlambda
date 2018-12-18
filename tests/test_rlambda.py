@@ -1,6 +1,6 @@
 
 '''
-Script to tests features of this module
+Unitary test for rlambda class
 '''
 
 
