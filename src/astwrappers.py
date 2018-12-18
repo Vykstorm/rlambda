@@ -597,7 +597,7 @@ class Expression(ast.Expression, Node):
 
     def eval(self):
         '''
-        Evaluates this expression and returns the result of such evaluation.
+        Evaluates this expression and returns the output.
         :return:
         '''
         placeholders = self.placeholders
