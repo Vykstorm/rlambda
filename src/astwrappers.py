@@ -179,9 +179,17 @@ class Operator(Node):
     Represents an operator of any kind
     '''
 
-    def __init__(self, symbol):
+    def __init__(self, symbol, precedence):
+        '''
+        Initializes this instance
+        :param symbol: Is the symbol of the operator
+        :param precedence: Is the precedence level of this operator. Must be an integer greater or equal than 0. 0 is the
+        lowest operator precedence lower.
+        '''
+        assert isinstance(symbol, str) and isinstance(precedence, int) and precedence >= 0
         super().__init__()
         self.symbol = symbol
+        self.precedence = precedence
 
 
 class UnaryOperator(Operator):
@@ -200,92 +208,95 @@ class CompareOperator(Operator):
     '''
     Represents any comparision operator
     '''
-    pass
+    def __init__(self, symbol):
+        # All comparision operators has the same precedence level
+        super().__init__(symbol, 3)
 
 
 # Unary operators
 
 class UnaryAdd(UnaryOperator, ast.UAdd):
     def __init__(self):
-        UnaryOperator.__init__(self, '+')
+        UnaryOperator.__init__(self, '+', 10)
         ast.UAdd.__init__(self)
 
 
 class UnarySub(UnaryOperator, ast.USub):
     def __init__(self):
-        UnaryOperator.__init__(self, '-')
+        UnaryOperator.__init__(self, '-', 10)
         ast.USub.__init__(self)
 
 class Invert(UnaryOperator, ast.Invert):
     def __init__(self):
-        UnaryOperator.__init__(self, '~')
+        UnaryOperator.__init__(self, '~', 10)
         ast.Invert.__init__(self)
 
-# Binary operators
+
+# Binary operator
 
 class Add(BinaryOperator, ast.Add):
     def __init__(self):
-        BinaryOperator.__init__(self, '+')
+        BinaryOperator.__init__(self, '+', 8)
         ast.Add.__init__(self)
 
 class Sub(BinaryOperator, ast.Sub):
     def __init__(self):
-        BinaryOperator.__init__(self, '-')
+        BinaryOperator.__init__(self, '-', 8)
         ast.Sub.__init__(self)
 
 class Mult(BinaryOperator, ast.Mult):
     def __init__(self):
-        BinaryOperator.__init__(self, '*')
+        BinaryOperator.__init__(self, '*', 9)
         ast.Mult.__init__(self)
 
 class Div(BinaryOperator, ast.Div):
     def __init__(self):
-        BinaryOperator.__init__(self, '/')
+        BinaryOperator.__init__(self, '/', 9)
         ast.Div.__init__(self)
 
 class FloorDiv(BinaryOperator, ast.FloorDiv):
     def __init__(self):
-        BinaryOperator.__init__(self, '//')
+        BinaryOperator.__init__(self, '//', 9)
         ast.FloorDiv.__init__(self)
 
 class Mod(BinaryOperator, ast.Mod):
     def __init__(self):
-        BinaryOperator.__init__(self, '%')
+        BinaryOperator.__init__(self, '%', 9)
         ast.Mod.__init__(self)
 
 class Pow(BinaryOperator, ast.Pow):
     def __init__(self):
-        BinaryOperator.__init__(self, '**')
+        BinaryOperator.__init__(self, '**', 11)
         ast.Pow.__init__(self)
 
 class LShift(BinaryOperator, ast.LShift):
     def __init__(self):
-        BinaryOperator.__init__(self, '<<')
+        BinaryOperator.__init__(self, '<<', 7)
         ast.LShift.__init__(self)
 
 class RShift(BinaryOperator, ast.RShift):
     def __init__(self):
-        BinaryOperator.__init__(self, '>>')
+        BinaryOperator.__init__(self, '>>', 7)
         ast.RShift.__init__(self)
 
 class BitOr(BinaryOperator, ast.BitOr):
     def __init__(self):
-        BinaryOperator.__init__(self, '|')
+        BinaryOperator.__init__(self, '|', 4)
         ast.BitOr.__init__(self)
         
 class BitAnd(BinaryOperator, ast.BitAnd):
     def __init__(self):
-        BinaryOperator.__init__(self, '&')
+        BinaryOperator.__init__(self, '&', 6)
         ast.BitAnd.__init__(self)
 
 class BitXor(BinaryOperator, ast.BitXor):
     def __init__(self):
-        BinaryOperator.__init__(self, '^')
+        BinaryOperator.__init__(self, '^', 5)
         ast.BitXor.__init__(self)
 
 class MatMul(BinaryOperator, ast.MatMult):
     def __init__(self):
-        BinaryOperator.__init__(self, '@')
+        BinaryOperator.__init__(self, '@', 9)
         ast.MatMult.__init__(self)
 
 
