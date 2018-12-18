@@ -61,7 +61,7 @@ class RLambda:
     @property
     def __wrapped__(self):
         '''
-        :return: Returns an equivalent lambda function equivalent to this rlambda object. This method can be used
+        :return: Returns a lambda function equivalent to this rlambda object. This method can be used
         to retrieve the signature of this instance and fetch its parameters.
         '''
         self._build_func()
