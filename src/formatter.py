@@ -7,7 +7,7 @@ from functools import reduce
 from types import BuiltinFunctionType, FunctionType, LambdaType
 from inspect import isclass
 
-from .utils import enclose, slice_to_str
+from .utils import enclose, slice_to_str, findsuperclassof
 from .astwrappers import Node, Lambda, Expression, Variable, Operator, Placeholder, Index, Slice, ExtendedSlice
 from .astwrappers import Literal, LiteralNumber, LiteralEllipsis, LiteralBytes, LiteralBool, LiteralNone, LiteralStr
 from .astwrappers import Operation, UnaryOperation, BinaryOperation, CompareOperation,\
@@ -28,7 +28,7 @@ class RLambdaFormatter:
         '''
         Stringifies the rlambda object given as argument. e.g:
         RLambdaFormatter().format( (x+1) // 2 ) ->  "x : (x+1) // 2"
-        This method should not be overrided. Look the next methods below to customize rlambda formatting.
+        This method should not be overrided. Look the next methods with the name format_X  to customize rlambda formatting.
         '''
         from .rlambda import RLambda
         if not isinstance(f, RLambda):
@@ -36,7 +36,7 @@ class RLambdaFormatter:
 
         f._build_expr()
         expr = f._expr
-        return self.format_node(expr)
+        return self._format_node(expr)
 
     def format_body(self, f):
         '''
@@ -48,143 +48,161 @@ class RLambdaFormatter:
             raise TypeError('Expected rlambda object at argument 1 but got {}'.format(type(f).__name__))
         f._build_expr()
         expr = f._expr
-        return self.format_node(expr.body.body)
+        return self._format_node(expr.body.body)
 
 
-    def format_node(self, node):
+    def _format_node(self, node):
         assert isinstance(node, Node)
 
-        # Variables
-        if isinstance(node, Variable):
-            return self.format_arg(node.id)
+        # Call the right formatter to stringify the node depending on its kind.
+        formatters = {
+            Variable: self._format_variable,
+            Literal: self._format_literal,
+            Placeholder: self._format_placeholder,
+            Operator: self._format_operator,
+            Index: self._format_index,
+            Slice: self._format_slice,
+            ExtendedSlice: self._format_extslice,
+            Operation: self._format_operation,
+            Lambda: self._format_lambda,
+            Expression: self._format_expression
+        }
+        formatter = formatters[findsuperclassof(formatters.keys(), type(node))]
+        return formatter(node)
 
-        # Literals
-        if isinstance(node, Literal):
-            if isinstance(node, LiteralNumber):
-                return self.format_value(node.n)
-            if isinstance(node, (LiteralStr, LiteralBytes)):
-                return self.format_value(node.s)
-            if isinstance(node, LiteralEllipsis):
-                return self.format_value(Ellipsis)
-            if isinstance(node, LiteralNone):
-                return self.format_value(None)
-            if isinstance(node, LiteralBool):
-                return self.format_value(node.value)
-            raise NotImplementedError()
 
-        # Placeholders
-        if isinstance(node, Placeholder):
+    def _format_variable(self, node):
+        assert isinstance(node, Variable)
+        return self.format_arg(node.id)
+
+
+    def _format_literal(self, node):
+        assert isinstance(node, Literal)
+
+        if isinstance(node, LiteralNumber):
+            return self.format_value(node.n)
+        if isinstance(node, (LiteralStr, LiteralBytes)):
+            return self.format_value(node.s)
+        if isinstance(node, LiteralEllipsis):
+            return self.format_value(Ellipsis)
+        if isinstance(node, LiteralNone):
+            return self.format_value(None)
+        if isinstance(node, LiteralBool):
             return self.format_value(node.value)
-
-        # Operators
-        if isinstance(node, Operator):
-            return self.format_operator(node.symbol)
-
-        # Index
-        if isinstance(node, Index):
-            return self._format_index(node)
-
-        # Slice
-        if isinstance(node, Slice):
-            return repr(self._format_slice(node))
-
-        # Extended slice
-        if isinstance(node, ExtendedSlice):
-            return repr(self._format_extslice(node))
-
-        # Operations
-        if isinstance(node, Operation):
-            # Unary operations
-            if isinstance(node, UnaryOperation):
-                return self.format_unary_operation(
-                    self.format_node(node.op),
-                    self.format_node(node.operand)
-                )
-
-            # Binary operations
-            if isinstance(node, BinaryOperation):
-                return self.format_binary_operation(
-                    self.format_node(node.left),
-                    self.format_node(node.op),
-                    self.format_node(node.right)
-                )
-
-            # Compare operations
-            if isinstance(node, CompareOperation):
-                items = tuple(map(self.format_node, chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
-                return self.format_compare_operation(*items)
-
-            # Subscript operations
-            if isinstance(node, SubscriptOperation):
-                if isinstance(node.slice, Index):
-                    return self.format_indexing_operation(
-                        self.format_node(node.value),
-                        self._format_index(node.slice)
-                    )
-                if isinstance(node.slice, Slice):
-                    return self.format_slicing_operation(
-                        self.format_node(node.value),
-                        self._format_slice(node.slice)
-                    )
-
-                if isinstance(node.slice, ExtendedSlice):
-                    return self.format_extslicing_operation(
-                        self.format_node(node.value),
-                        self._format_extslice(node.slice)
-                    )
-
-
-            # Attribute access operations
-            if isinstance(node, AttributeOperation):
-                return self.format_getattr_operation(
-                    self._format_sunode(node.value),
-                    node.attr
-                )
-
-            # Call function operation
-            if isinstance(node, CallOperation):
-                return self.format_call_operation(
-                    self._format_sunode(node.func),
-                    *tuple(map(self.format_node, node.args)),
-                    **dict(map(
-                        lambda key, value: (key, self._format_sunode(value)),
-                        map(attrgetter('arg', 'value'), node.keywords)
-                    ))
-
-                )
-
-        # Lambdas
-        if isinstance(node, Lambda):
-            return self.format_lambda(
-                self.format_signature(
-                    tuple(map(lambda arg: self.format_param(arg.arg), node.args.args))
-                ),
-                self.format_node(node.body))
-
-        # Expressions
-        if isinstance(node, Expression):
-            return self.format_node(node.body)
 
         raise NotImplementedError()
 
 
+    def _format_placeholder(self, node):
+        assert isinstance(node, Placeholder)
+        return self.format_value(node.value)
+
+
+    def _format_operator(self, node):
+        assert isinstance(node, Operator)
+        return self.format_operator(node.symbol)
+
+
+
 
     def _format_index(self, index):
-        return self.format_node(index.value)
+        return self._format_node(index.value)
 
 
     def _format_slice(self, index):
-        return slice(
-            None if index.lower is None else self.format_node(index.lower),
-            None if index.upper is None else self.format_node(index.upper),
-            None if index.step is None else self.format_node(index.step)
+        return self.format_slice(
+            slice(
+            None if index.lower is None else self._format_node(index.lower),
+            None if index.upper is None else self._format_node(index.upper),
+            None if index.step is None else self._format_node(index.step))
         )
 
     def _format_extslice(self, indexes):
-        return tuple(
-            map(lambda index: self._format_index(index) if isinstance(index, Index) else self._format_slice(index),
-                indexes.dims)
+        return self.format_extslice(
+            tuple(
+                map(lambda index: self._format_index(index) if isinstance(index, Index) else self._format_slice(index),
+                    indexes.dims)
+            )
         )
+
+
+
+
+    def _format_operation(self, node):
+        assert isinstance(node, Operation)
+
+        formatters = {
+            UnaryOperation: self._format_unary_operation,
+            BinaryOperation: self._format_binary_operation,
+            CompareOperation: self._format_binary_operation,
+            SubscriptOperation: self._format_subscript_operation,
+            AttributeOperation: self._format_getattr_operation,
+            CallOperation: self._format_call_operation
+        }
+        formatter = formatters[findsuperclassof(formatters.keys(), type(node))]
+        return formatter(node)
+
+
+    def _format_unary_operation(self, node):
+        assert isinstance(node, UnaryOperation)
+        return self.format_unary_operation(
+            self._format_node(node.op),
+            self._format_node(node.operand)
+        )
+
+    def _format_binary_operation(self, node):
+        assert isinstance(node, BinaryOperation)
+        return self.format_binary_operation(
+            self._format_node(node.left),
+            self._format_node(node.op),
+            self._format_node(node.right)
+        )
+
+    def _format_compare_operation(self, node):
+        assert isinstance(node, CompareOperation)
+        items = tuple(
+            map(self._format_node, chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
+        return self.format_compare_operation(*items)
+
+    def _format_subscript_operation(self, node):
+        assert isinstance(node, SubscriptOperation)
+        return self.format_subscript_operation(
+            self._format_node(node.value),
+            self._format_node(node.slice)
+        )
+
+    def _format_getattr_operation(self, node):
+        assert isinstance(node, AttributeOperation)
+        return self.format_getattr_operation(
+            self._format_node(node.value),
+            node.attr
+        )
+
+    def _format_call_operation(self, node):
+        assert isinstance(node, CallOperation)
+        return self.format_call_operation(
+            self._format_node(node.func),
+            *tuple(map(self._format_node, node.args)),
+            **dict(map(
+                lambda key, value: (key, self._format_node(value)),
+                map(attrgetter('arg', 'value'), node.keywords)
+            ))
+
+        )
+
+    def _format_lambda(self, node):
+        assert isinstance(node, Lambda)
+
+        return self.format_lambda(
+            self.format_signature(
+                tuple(map(lambda arg: self.format_param(arg.arg), node.args.args))
+            ),
+            self._format_node(node.body))
+
+
+    def _format_expression(self, node):
+        return self._format_node(node.body)
+
 
 
 
@@ -315,42 +333,20 @@ class RLambdaFormatter:
         return ' '.join(chain((first_operand, first_op, second_operand), args))
 
 
-    def format_indexing_operation(self, container, index):
-        '''
-        Formats a basic indexing operation node.
-        :param container: Is the object being indexed already formatted (string object)
-        :param index: Is the index already formatted
-        e.g:
-        RLambdaFormatter().format( x[1] ) will call format_indexing_operation('x', '1') and it will return "x[1]"
-        '''
+    def format_index(self, index):
+        return index
+
+
+    def format_slice(self, index):
+        return slice_to_str(index)
+
+
+    def format_extslice(self, indexes):
+        return ', '.join(map(lambda x: x if not isinstance(x, slice) else slice_to_str(x), indexes))
+
+
+    def format_subscript_operation(self, container, index):
         return container + enclose(index, '[]')
-
-
-    def format_slicing_operation(self, container, index):
-        '''
-        Format a basic slice indexing operation node.
-        :param container: Is the object being indexed already formatted (string object)
-        :param index: Is an object of the class slice such that "start", "stop" and "step" attributes are the values use
-        for indexing the container already formatted (either strings or value None to indicate they are not set)
-        e.g:
-        RLambdaFormatter().format( x[1:2:1] ) will call format_slicing_operation('x', slice('1', '2', '1')) and will
-        return 'x[1:2:1]'
-        '''
-        return container + enclose(slice_to_str(index), '[]')
-
-
-    def format_extslicing_operation(self, container, indexes):
-        '''
-        Format a extended slice indexing operation node.
-        :param container: Is the object being indexed already formatted (string object)
-        :param indexes: Is a tuple of values used for indexing already formatted (either strings or instances of class slice)
-        e.g:
-        RLambdaFormatter().format( x[1:2, 3:4:1] ) will call
-        format_extslicing_operation('x', ( slice('1', '2', None), slice('3', 4', '1') ) )
-        '''
-
-        s = ', '.join(map(lambda x: x if not isinstance(x, slice) else slice_to_str(x), indexes))
-        return container + enclose(s if len(indexes) > 1 else s + ',', '[]')
 
 
     def format_getattr_operation(self, obj, key):

@@ -15,7 +15,7 @@ class Node:
     Represents any kind of node
     '''
     def __str__(self):
-        return RLambdaFormatter().format_node(self)
+        return RLambdaFormatter()._format_node(self)
 
     def __repr__(self):
         return str(self)
