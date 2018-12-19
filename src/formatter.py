@@ -70,14 +70,18 @@ class RLambdaFormatter:
         formatter = formatters[findsuperclassof(formatters.keys(), type(node))]
         return formatter(node)
 
-    def _format_subnode(self, node):
-        composed = False
-        if isinstance(node, (UnaryOperation, BinaryOperation, CompareOperation)):
-            composed = True
+    def _format_subnode(self, node, parent=None):
 
         s = self._format_node(node)
-        return s if not composed else self.format_precedence(s)
+        if not isinstance(node, Operation):
+            return s
+        if isinstance(parent, Operation):
+            # Compare operations precedence. If the inner operation has more precedence than outer operation, we dont
+            # need to enclose inner operation with brackets
+            if node > parent:
+                return s
 
+        return self.format_precedence(s)
 
 
 
@@ -152,35 +156,36 @@ class RLambdaFormatter:
     def _format_unary_operation(self, node):
         assert isinstance(node, UnaryOperation)
         return self.format_unary_operation(
-            self._format_subnode(node.op),
-            self._format_subnode(node.operand)
+            self._format_subnode(node.op, node),
+            self._format_subnode(node.operand, node)
         )
 
     def _format_binary_operation(self, node):
         assert isinstance(node, BinaryOperation)
         return self.format_binary_operation(
-            self._format_subnode(node.left),
-            self._format_subnode(node.op),
-            self._format_subnode(node.right)
+            self._format_subnode(node.left, node),
+            self._format_subnode(node.op, node),
+            self._format_subnode(node.right, node)
         )
 
     def _format_compare_operation(self, node):
         assert isinstance(node, CompareOperation)
         items = tuple(
-            map(self._format_subnode, chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
+            map(lambda subnode: self._format_subnode(subnode, node),
+                chain((node.left,), reduce(operator.add, zip(node.ops, node.comparators)))))
         return self.format_compare_operation(*items)
 
     def _format_subscript_operation(self, node):
         assert isinstance(node, SubscriptOperation)
         return self.format_subscript_operation(
-            self._format_subnode(node.value),
-            self._format_subnode(node.slice)
+            self._format_subnode(node.value, node),
+            self._format_subnode(node.slice, node)
         )
 
     def _format_getattr_operation(self, node):
         assert isinstance(node, AttributeOperation)
         return self.format_getattr_operation(
-            self._format_subnode(node.value),
+            self._format_subnode(node.value, node),
             node.attr
         )
 
@@ -188,11 +193,11 @@ class RLambdaFormatter:
         assert isinstance(node, CallOperation)
 
         return self.format_call_operation(
-            self._format_subnode(node.func),
-            *tuple(map(self._format_subnode, node.args)),
+            self._format_subnode(node.func, node),
+            *tuple(map(lambda arg: self._format_subnode(arg, node), node.args)),
             **dict(zip(
                 map(attrgetter('arg'), node.keywords),
-                map(lambda kwarg: self._format_subnode(kwarg.value), node.keywords)))
+                map(lambda kwarg: self._format_subnode(kwarg.value, node), node.keywords)))
         )
 
     def _format_lambda(self, node):
