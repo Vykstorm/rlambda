@@ -7,6 +7,7 @@ to build rlambdas objects.
 import ast
 from itertools import count, chain
 import operator
+from operator import attrgetter
 from .utils import enclose, iterable, allinstanceof
 
 
@@ -190,6 +191,28 @@ class Operator(Node):
         super().__init__()
         self.symbol = symbol
         self.precedence = precedence
+
+    def __lt__(self, other):
+        '''
+        Compares operator level precedences.
+        :param other: Another instance of class Operator
+        :return: Returns True if this operator precedence is lower than the other operator precedence. Otherwise returns False
+        '''
+        if not isinstance(other, Operator):
+            raise NotImplemented()
+        return self.precedence < other.precedence
+
+    def __le__(self, other):
+        '''
+        Compares operator level precedences
+        :param other: Another instance of class Operator
+        :return: Returns True if this operator precedence is lower or equal than the other operator precedence.
+        Otherwise returns False
+        '''
+        if not isinstance(other, Operator):
+            raise NotImplemented()
+        return self.precedence <= other.precedence
+
 
 
 class UnaryOperator(Operator):
@@ -388,7 +411,36 @@ class Operation(Node):
     '''
     Represents any kind of operation
     '''
-    pass
+
+    @property
+    def precedence(self):
+        '''
+        This must be implemented by subclasses. It may return the precedence level of this operation
+        :return:
+        '''
+        raise NotImplementedError()
+
+    def __lt__(self, other):
+        '''
+        Compares operation level precedences.
+        :param other: Another instance of class Operation
+        :return: Returns True if this operation precedence is lower than the other operation precedence. Otherwise returns False
+        '''
+        if not isinstance(other, Operation):
+            raise NotImplemented()
+        return self.precedence < other.precedence
+
+    def __le__(self, other):
+        '''
+        Compares operation level precedences
+        :param other: Another instance of class Operation
+        :return: Returns True if this operation precedence is lower or equal than the other operation precedence.
+        Otherwise returns False
+        '''
+        if not isinstance(other, Operation):
+            raise NotImplemented()
+        return self.precedence <= other.precedence
+
 
 
 class UnaryOperation(ast.UnaryOp, Operation):
@@ -406,6 +458,9 @@ class UnaryOperation(ast.UnaryOp, Operation):
         ast.UnaryOp.__init__(self, op, operand)
         Operation.__init__(self)
 
+    @property
+    def precedence(self):
+        return self.op.precedence
 
 
 class BinaryOperation(ast.BinOp, Operation):
@@ -424,6 +479,10 @@ class BinaryOperation(ast.BinOp, Operation):
 
         ast.BinOp.__init__(self, left, op, right)
         Operation.__init__(self)
+
+    @property
+    def precedence(self):
+        return self.op.precedence
 
 
 class CompareOperation(ast.Compare, Operation):
@@ -450,6 +509,11 @@ class CompareOperation(ast.Compare, Operation):
         ast.Compare.__init__(self, operands[0], list(operators), list(operands[1:]))
         Operation.__init__(self)
 
+
+    @property
+    def precedence(self):
+        # All compare operations has the same precedence level
+        return self.ops[0].precedence
 
 
 class Index(ast.Index, Node):
@@ -510,6 +574,9 @@ class SubscriptOperation(ast.Subscript, Operation):
         ast.Subscript.__init__(self, value, index, ast.Load())
         Operation.__init__(self)
 
+    @property
+    def precedence(self):
+        return 13
 
 
 class AttributeOperation(ast.Attribute, Operation):
@@ -526,6 +593,10 @@ class AttributeOperation(ast.Attribute, Operation):
 
         ast.Attribute.__init__(self, value, attr, ast.Load())
         Operation.__init__(self)
+
+    @property
+    def precedence(self):
+        return 13
 
 
 class CallOperation(ast.Call, Operation):
@@ -546,6 +617,9 @@ class CallOperation(ast.Call, Operation):
         ast.Call.__init__(self, func, list(args), [ast.keyword(key, value) for key, value in kwargs.items()])
         Operation.__init__(self)
 
+    @property
+    def precedence(self):
+        return 13
 
 
 class Lambda(ast.Lambda, Node):
