@@ -58,6 +58,17 @@ class RLambda:
 
 
     def _bind(self, *args, **kwargs):
+        '''
+        Returns a rlambda object similar to a lambda function defined like:
+        partial(self, *args, **kwargs)
+        e.g:
+        f = (x + y + z + w) * 2
+        g = f._bind(x=1, y=2, z=3)
+        g will be a rlambda object equivalent to (1 + 2 + 3 + w) * 2
+        The new rlambda object 'g' doesnt have the parameters x, y, z in its signature, so it must be called passing
+        only the 'w' argument e.g:
+        g(1) = g(w=1) = (1 + 2 + 3 + 4) * 2
+        '''
         self._build_func()
         bounded_args = signature(self._func).bind_partial(*args, **kwargs)
         binder = VariableBinder(**bounded_args.arguments)
