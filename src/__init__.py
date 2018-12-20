@@ -4,3 +4,4 @@
 from .rlambda import RLambda, RLambdaIdentity, bind
 from .formatter import RLambdaFormatter, DefaultRLambdaFormatter
 from .funcs import *
+from .abc import *
