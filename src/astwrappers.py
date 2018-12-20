@@ -43,6 +43,24 @@ class Node:
             obj.__dict__[key] = deepcopy(value, memodict)
         return obj
 
+    def __eq__(self, other):
+        '''
+        Compare two nodes. They will be equal if they have the same node type and all its fields
+        are equal.
+        '''
+        if type(other) != type(self):
+            return False
+
+        for key in self.__dict__:
+            a, b = self.__dict__[key], other.__dict__[key]
+            if type(a) != type(b):
+                return False
+            if isinstance(a, Node) or not isinstance(a, ast.AST):
+                if a != b:
+                    return False
+        return True
+
+
 class Variable(ast.Name, Node):
     '''
     This kind of node represents a named variable
@@ -89,6 +107,11 @@ class Placeholder(ast.Name, Node):
     def __deepcopy__(self, memodict={}):
         return copy(self)
 
+
+    def __eq__(self, other):
+        if not isinstance(other, Placeholder):
+            return False
+        return self.index == other.index and self.value is other.value
 
 class Literal(Node):
     '''
