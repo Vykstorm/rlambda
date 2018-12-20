@@ -30,7 +30,7 @@ class Node:
         cls = self.__class__
         obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
         for key, value in self.__dict__.items():
-            obj.__dict__[key] = value
+            obj.__dict__[key] = value if isinstance(value, (Node, ast.AST)) else copy(value)
         return obj
 
     def __deepcopy__(self, memodict={}):
@@ -40,7 +40,10 @@ class Node:
         cls = self.__class__
         obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
         for key, value in self.__dict__.items():
-            obj.__dict__[key] = deepcopy(value, memodict)
+            if isinstance(value, Node) or not isinstance(value, ast.AST):
+                obj.__dict__[key] = deepcopy(value, memodict)
+            else:
+                obj.__dict__[key] = value
         return obj
 
     def __eq__(self, other):
@@ -104,6 +107,8 @@ class Placeholder(ast.Name, Node):
     def __copy__(self):
         obj = ast.Name.__new__(self.__class__)
         obj._index = self._index
+        obj.ctx = self.ctx
+        obj.id = self.id
         obj.value = self.value
         return obj
 
