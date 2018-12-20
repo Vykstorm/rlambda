@@ -8,6 +8,7 @@ from operator import attrgetter
 from functools import reduce
 from itertools import chain
 import builtins
+from inspect import signature
 
 
 class RLambda:
@@ -58,6 +59,18 @@ class RLambda:
             self._build_expr()
             self._func = self._expr.eval()
 
+
+    def _bind(self, *args, **kwargs):
+        self._build_func()
+        bounded_args = signature(self._func).bind_partial(*args, **kwargs)
+        binder = VariableBinder(**bounded_args.arguments)
+
+        return RLambda(
+            body=binder.bind(self._body),
+            inputs=tuple(frozenset(self._inputs) - frozenset(bounded_args.arguments.keys()))
+        )
+
+
     @property
     def __wrapped__(self):
         '''
@@ -86,6 +99,8 @@ class RLambda:
 
     def __repr__(self):
         return str(self)
+
+
 
 
     def _binary_op(self, op, other):
