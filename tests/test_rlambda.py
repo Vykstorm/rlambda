@@ -168,6 +168,18 @@ class RLambdaTest(TestCase):
         self.assertEqual((x.real ** 2)(a), a.real ** 2)
         self.assertEqual((x.imag ** 2)(a), a.imag ** 2)
 
+    def test_variable_binding(self):
+        '''
+        Test rlambda _build method
+        :return:
+        '''
+        f = (((x + y + z + 1) * 2) // 3) * z
+        g = f._bind(x=1, y=2)
+        self.assertEqual(g(z=3), f(x=1, y=2, z=3))
+
+        g = f._bind(x=1, y=2, z=3)
+        self.assertEqual(g(), f(x=1, y=2, z=3))
+
 
     def test_math(self):
         '''
