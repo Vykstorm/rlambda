@@ -24,6 +24,9 @@ class Node:
         return str(self)
 
     def __copy__(self):
+        '''
+        :return: Returns a shallow copy of this instance.
+        '''
         cls = self.__class__
         obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
         for key, value in self.__dict__.items():
@@ -31,6 +34,9 @@ class Node:
         return obj
 
     def __deepcopy__(self, memodict={}):
+        '''
+        :return: Returns a deep copy of this instance
+        '''
         cls = self.__class__
         obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
         for key, value in self.__dict__.items():
@@ -721,6 +727,27 @@ class Expression(ast.Expression, Node):
         globals=dict(zip(map(operator.attrgetter('id'), placeholders), map(operator.attrgetter('value'), placeholders)))
         code = _compile()
         return eval(code, globals)
+
+
+class VariableBinder(ast.NodeTransformer):
+    '''
+    This class can be used to replace Variable nodes with Placeholder or literal nodes
+    '''
+    def __init__(self, **kwargs):
+        assert allinstanceof(kwargs.keys(), str)
+
+        super().__init__()
+        self.kwargs = kwargs
+
+    def __call__(self, node):
+        return self.generic_visit(deepcopy(node))
+
+
+    def generic_visit(self, node):
+        if isinstance(node, Variable):
+            if node.id in self.kwargs:
+                return encode_value(self.kwargs[node.id])
+        return super().generic_visit(node)
 
 
 from .formatter import DefaultRLambdaFormatter
