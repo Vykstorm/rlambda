@@ -739,7 +739,7 @@ class VariableBinder(ast.NodeTransformer):
         super().__init__()
         self.kwargs = kwargs
 
-    def __call__(self, node):
+    def bind(self, node):
         return self.generic_visit(deepcopy(node))
 
 
