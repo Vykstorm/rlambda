@@ -30,7 +30,7 @@ class Node:
         cls = self.__class__
         obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
         for key, value in self.__dict__.items():
-            obj.__dict__[key] = copy(value)
+            obj.__dict__[key] = value
         return obj
 
     def __deepcopy__(self, memodict={}):
@@ -57,6 +57,9 @@ class Node:
                 return False
             if isinstance(a, Node) or not isinstance(a, ast.AST):
                 if a != b:
+                    return False
+            else:
+                if a is not b:
                     return False
         return True
 
