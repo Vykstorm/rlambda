@@ -8,7 +8,9 @@ import ast
 from itertools import count, chain
 import operator
 from operator import attrgetter
-from .utils import enclose, iterable, allinstanceof
+from copy import copy, deepcopy
+from inspect import getmro
+from .utils import enclose, iterable, allinstanceof, findsubclassof
 
 
 class Node:
@@ -20,6 +22,20 @@ class Node:
 
     def __repr__(self):
         return str(self)
+
+    def __copy__(self):
+        cls = self.__class__
+        obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
+        for key, value in self.__dict__.items():
+            obj.__dict__[key] = copy(value)
+        return obj
+
+    def __deepcopy__(self, memodict={}):
+        cls = self.__class__
+        obj = findsubclassof(getmro(cls), ast.AST).__new__(cls)
+        for key, value in self.__dict__.items():
+            obj.__dict__[key] = deepcopy(value, memodict)
+        return obj
 
 class Variable(ast.Name, Node):
     '''
@@ -57,6 +73,15 @@ class Placeholder(ast.Name, Node):
         assert isinstance(x, int) and x >= 0
         self._index = x
         self.id = '_' + repr(self._index)
+
+    def __copy__(self):
+        obj = ast.Name.__new__(self.__class__)
+        obj._index = self._index
+        obj.value = self.value
+        return obj
+
+    def __deepcopy__(self, memodict={}):
+        return copy(self)
 
 
 class Literal(Node):
