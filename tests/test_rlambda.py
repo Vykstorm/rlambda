@@ -169,46 +169,6 @@ class RLambdaTest(TestCase):
         self.assertEqual((x.imag ** 2)(a), a.imag ** 2)
 
 
-    def test_builtins(self):
-        '''
-        Test custom built-in core functions for rlambdas
-        :return:
-        '''
-        import builtins
-        from src.funcs import str, int, float, bool, complex
-        from src.funcs import min, max, range
-        from src.funcs import list, tuple, set, frozenset
-
-
-        for a in ('10', True, 10):
-            self.assertEqual((str(x))(a), builtins.str(a))
-            self.assertEqual(str(a), builtins.str(a))
-
-            self.assertEqual((int(x))(a), builtins.int(a))
-            self.assertEqual(int(a), builtins.int(a))
-
-            self.assertEqual((float(x))(a), builtins.float(a))
-            self.assertEqual(float(a), builtins.float(a))
-
-            self.assertEqual((bool(x))(a), builtins.bool(a))
-            self.assertEqual(bool(a), builtins.bool(a))
-
-
-        a, b = 1, 2
-        self.assertEqual((complex(x, y))(a, b), builtins.complex(a, b))
-        self.assertEqual(complex(a, b), builtins.complex(a, b))
-
-        self.assertEqual((min(x, y))(1, 2), builtins.min(1, 2))
-        self.assertEqual((max(x, y))(1, 2), builtins.max(1, 2))
-
-        self.assertEqual((range(x, y, z))(1, 10, 1), builtins.range(1, 10, 1))
-
-        for a in ([1,2,3], (1,2,3), range(4), frozenset([1,2,3])):
-            self.assertEqual((list(x))(a), builtins.list(a))
-            self.assertEqual((tuple(x))(a), builtins.tuple(a))
-            self.assertEqual((set(x))(a), builtins.set(a))
-            self.assertEqual((frozenset(x))(a), builtins.frozenset(a))
-
     def test_math(self):
         '''
         Test custom built-in math functions for rlambdas
