@@ -30,9 +30,6 @@ class RLambda:
         # Remove duplicate inputs
         inputs = frozenset(inputs)
 
-        # Make sure there is at least 1 input
-        assert len(inputs) > 0
-
         # Sort the inputs by name
         inputs = tuple(sorted(inputs, key=str.lower))
 

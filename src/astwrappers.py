@@ -659,9 +659,6 @@ class Lambda(ast.Lambda, Node):
     '''
     def __init__(self, args, body):
         assert iterable(args) and isinstance(body, ast.AST)
-        args = list(args)
-        assert len(args) > 0
-
 
         args = list(map(lambda arg: ast.arg(arg, None), args))
 

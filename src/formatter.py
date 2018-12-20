@@ -203,9 +203,15 @@ class RLambdaFormatter:
     def _format_lambda(self, node):
         assert isinstance(node, Lambda)
 
+        params = node.args.args
+
+        # If signature parameters list is empty, just print the body.
+        if  len(params) == 0:
+            return self._format_node(node.body)
+
         return self.format_lambda(
             self.format_signature(
-                tuple(map(lambda arg: self.format_param(arg.arg), node.args.args))
+                tuple(map(lambda param: self.format_param(param.arg), params))
             ),
             self._format_node(node.body))
 
