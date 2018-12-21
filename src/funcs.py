@@ -7,6 +7,7 @@ Additional functions to operate with rlambdas
 
 import builtins
 import math
+import operator
 from types import SimpleNamespace
 from functools import wraps
 from itertools import chain
@@ -15,12 +16,12 @@ from .utils import anyinstanceof
 
 _funcs = dict(builtins.__dict__)
 _funcs.update(math.__dict__)
+_funcs.update(operator.__dict__)
 _builtins = SimpleNamespace(**_funcs)
 
 
 
 # Built-in overrides
-
 
 def _build_wrapper(func):
     assert callable(func)
@@ -38,6 +39,7 @@ def _build_wrapper(func):
 len = length = _build_wrapper(_builtins.len)
 min = _build_wrapper(_builtins.min)
 max = _build_wrapper(_builtins.max)
+contains = _build_wrapper(_builtins.contains)
 
 ceil = _build_wrapper(_builtins.ceil)
 copysign = _build_wrapper(_builtins.copysign)
@@ -83,5 +85,7 @@ gamma = _build_wrapper(_builtins.gamma)
 lgamma = _build_wrapper(_builtins.lgamma)
 
 
+
+# Misc functions
 
 
