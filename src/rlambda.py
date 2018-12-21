@@ -4,7 +4,6 @@ from .utils import anyinstanceof, instanceofchecker
 from .astwrappers import *
 import ast
 import operator
-from operator import attrgetter
 from functools import reduce
 from itertools import chain
 import builtins
