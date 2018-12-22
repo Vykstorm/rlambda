@@ -277,6 +277,7 @@ class RLambdaFormatter:
         :return:
         '''
         logical_ops = {
+            '==' : '=',
             '!=': '\u2260',
             '>=': '\u2265',
             '<=': '\u2264'
