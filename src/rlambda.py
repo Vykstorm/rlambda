@@ -30,7 +30,7 @@ class RLambda:
         inputs = frozenset(inputs)
 
         # Sort the inputs by name
-        inputs = tuple(sorted(inputs, key=str.lower))
+        inputs = tuple(sorted(inputs))
 
         # Set instance attributes
         self._inputs = inputs
@@ -353,7 +353,6 @@ class RLambdaIdentity(RLambda):
     '''
     def __init__(self, input):
         assert isinstance(input, str)
-        input = str.lower(input)
         super().__init__(
             inputs=(input,),
             body=Variable(input)

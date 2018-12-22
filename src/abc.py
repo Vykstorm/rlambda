@@ -4,16 +4,26 @@ from .rlambda import RLambdaIdentity
 
 
 '''
-Variables x, y, z, w, ... and its uppercase versions X,Y,Z,W, ... are
-the basic construction blocks to build rlambda objects
+Common rlambda object identities.
 '''
 
-w = W = RLambdaIdentity('w')
-x = X = RLambdaIdentity('x')
-y = Y = RLambdaIdentity('y')
-z = Z = RLambdaIdentity('z')
+w = RLambdaIdentity('w')
+x = RLambdaIdentity('x')
+y = RLambdaIdentity('y')
+z = RLambdaIdentity('z')
 
-a = A = RLambdaIdentity('a')
-b = B = RLambdaIdentity('b')
-c = C = RLambdaIdentity('c')
-d = D = RLambdaIdentity('d')
+W = RLambdaIdentity('W')
+X = RLambdaIdentity('X')
+Y = RLambdaIdentity('Y')
+Z = RLambdaIdentity('Z')
+
+
+a = RLambdaIdentity('a')
+b = RLambdaIdentity('b')
+c = RLambdaIdentity('c')
+d = RLambdaIdentity('d')
+
+A = RLambdaIdentity('A')
+B = RLambdaIdentity('B')
+C = RLambdaIdentity('C')
+D = RLambdaIdentity('D')
