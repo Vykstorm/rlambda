@@ -287,7 +287,16 @@ class BinaryOperator(Operator):
     '''
     Represents any binary operator
     '''
-    pass
+
+    def __init__(self, symbol, precedence, associative):
+        '''
+        Initializes this instance.
+        :param associative: This is set to True to indicate that this kind of binary operator follows the associativity rule.
+        a ⊕ (b ⊕ c) == (a ⊕ b) ⊕ c  for any a, b, c where ⊕ is the binary operator
+        '''
+        assert isinstance(associative, bool)
+        super().__init__(symbol, precedence)
+        self.associative = associative
 
 class CompareOperator(Operator):
     '''
@@ -321,67 +330,67 @@ class Invert(UnaryOperator, ast.Invert):
 
 class Add(BinaryOperator, ast.Add):
     def __init__(self):
-        BinaryOperator.__init__(self, '+', 8)
+        BinaryOperator.__init__(self, '+', 8, True)
         ast.Add.__init__(self)
 
 class Sub(BinaryOperator, ast.Sub):
     def __init__(self):
-        BinaryOperator.__init__(self, '-', 8)
+        BinaryOperator.__init__(self, '-', 8, False)
         ast.Sub.__init__(self)
 
 class Mult(BinaryOperator, ast.Mult):
     def __init__(self):
-        BinaryOperator.__init__(self, '*', 9)
+        BinaryOperator.__init__(self, '*', 9, True)
         ast.Mult.__init__(self)
 
 class Div(BinaryOperator, ast.Div):
     def __init__(self):
-        BinaryOperator.__init__(self, '/', 9)
+        BinaryOperator.__init__(self, '/', 9, False)
         ast.Div.__init__(self)
 
 class FloorDiv(BinaryOperator, ast.FloorDiv):
     def __init__(self):
-        BinaryOperator.__init__(self, '//', 9)
+        BinaryOperator.__init__(self, '//', 9, False)
         ast.FloorDiv.__init__(self)
 
 class Mod(BinaryOperator, ast.Mod):
     def __init__(self):
-        BinaryOperator.__init__(self, '%', 9)
+        BinaryOperator.__init__(self, '%', 9, False)
         ast.Mod.__init__(self)
 
 class Pow(BinaryOperator, ast.Pow):
     def __init__(self):
-        BinaryOperator.__init__(self, '**', 11)
+        BinaryOperator.__init__(self, '**', 11, False)
         ast.Pow.__init__(self)
 
 class LShift(BinaryOperator, ast.LShift):
     def __init__(self):
-        BinaryOperator.__init__(self, '<<', 7)
+        BinaryOperator.__init__(self, '<<', 7, False)
         ast.LShift.__init__(self)
 
 class RShift(BinaryOperator, ast.RShift):
     def __init__(self):
-        BinaryOperator.__init__(self, '>>', 7)
+        BinaryOperator.__init__(self, '>>', 7, False)
         ast.RShift.__init__(self)
 
 class BitOr(BinaryOperator, ast.BitOr):
     def __init__(self):
-        BinaryOperator.__init__(self, '|', 4)
+        BinaryOperator.__init__(self, '|', 4, True)
         ast.BitOr.__init__(self)
         
 class BitAnd(BinaryOperator, ast.BitAnd):
     def __init__(self):
-        BinaryOperator.__init__(self, '&', 6)
+        BinaryOperator.__init__(self, '&', 6, True)
         ast.BitAnd.__init__(self)
 
 class BitXor(BinaryOperator, ast.BitXor):
     def __init__(self):
-        BinaryOperator.__init__(self, '^', 5)
+        BinaryOperator.__init__(self, '^', 5, True)
         ast.BitXor.__init__(self)
 
 class MatMul(BinaryOperator, ast.MatMult):
     def __init__(self):
-        BinaryOperator.__init__(self, '@', 9)
+        BinaryOperator.__init__(self, '@', 9, True)
         ast.MatMult.__init__(self)
 
 
@@ -529,6 +538,7 @@ class BinaryOperation(ast.BinOp, Operation):
     '''
     This kind of node represents a binary operation which involves two operands and one binary operator
     '''
+
     def __init__(self, left, op, right):
         '''
         Initializes this instance
@@ -546,6 +556,9 @@ class BinaryOperation(ast.BinOp, Operation):
     def precedence(self):
         return self.op.precedence
 
+    @property
+    def associative(self):
+        return self.op.associative
 
 class CompareOperation(ast.Compare, Operation):
     '''
