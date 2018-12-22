@@ -81,6 +81,12 @@ class RLambdaFormatter:
             if node > parent:
                 return s
 
+            if isinstance(node, BinaryOperation) and isinstance(parent, BinaryOperation) and\
+                    node.op == parent.op and node.associative:
+                # Parent and child are binary operations of the same kind and follows the associativity rule.
+                # We dont need to enclose the inner operation with brackets as the expression is evaluated left to right.
+                return s
+
         return self.format_precedence(s)
 
 
