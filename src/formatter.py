@@ -200,11 +200,12 @@ class RLambdaFormatter:
 
         return self.format_call_operation(
             self._format_subnode(node.func, node),
-            *tuple(map(lambda arg: self._format_subnode(arg, node), node.args)),
+            *tuple(map(self._format_node, node.args)),
             **dict(zip(
                 map(attrgetter('arg'), node.keywords),
                 map(lambda kwarg: self._format_subnode(kwarg.value, node), node.keywords)))
         )
+
 
     def _format_lambda(self, node):
         assert isinstance(node, Lambda)
