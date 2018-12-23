@@ -1,5 +1,5 @@
 
-
+import math
 from .rlambda import RLambdaIdentity as Identity
 
 
@@ -50,11 +50,9 @@ mu = Identity('mu')
 nu = Identity('nu')
 xi = Identity('xi')
 omicron = Identity('omicron')
-pi = Identity('pi')
 rho = Identity('rho')
 varsigma = Identity('varsigma')
 sigma = Identity('sigma')
-tau = Identity('tau')
 upsilon = Identity('upsilon')
 phi = Identity('phi')
 chi = Identity('chi')
@@ -77,13 +75,28 @@ Mu = Identity('Mu')
 Nu = Identity('Nu')
 Xi = Identity('Xi')
 Omicron = Identity('Omicron')
-Pi = Identity('Pi')
 Rho = Identity('Rho')
 Varsigma = Identity('Varsigma')
 Sigma = Identity('Sigma')
-Tau = Identity('Tau')
 Upsilon = Identity('Upsilon')
 Phi = Identity('Phi')
 Chi = Identity('Chi')
 Psi = Identity('Psi')
 Omega = Identity('Omega')
+
+
+
+'''
+Math constants that will be formatted nicely
+'''
+
+class MathConstant(float):
+    def __new__(cls, value):
+        return float.__new__(cls, value)
+
+
+pi = Pi = PI = MathConstant(math.pi)
+e = E = MathConstant(math.e)
+tau = Tau = TAU = MathConstant(math.tau)
+inf = Inf = INF = MathConstant(math.inf)
+nan = Nan = NAN = MathConstant(math.nan)

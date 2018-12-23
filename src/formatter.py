@@ -8,13 +8,9 @@ from itertools import chain
 from functools import reduce
 from types import BuiltinFunctionType, FunctionType, LambdaType
 from inspect import isclass, signature
+from types import SimpleNamespace
 
-from .utils import enclose, slice_to_str, findsuperclassof, unicode_subscript, unicode_superscript
-from .astwrappers import Node, Lambda, Expression, Variable, Operator, Placeholder, Index, Slice, ExtendedSlice
-from .astwrappers import Literal, LiteralNumber, LiteralEllipsis, LiteralBytes, LiteralBool, LiteralNone, LiteralStr
-from .astwrappers import Operation, UnaryOperation, BinaryOperation, CompareOperation,\
-    SubscriptOperation, AttributeOperation, CallOperation
-from .astwrappers import Pow, Sub, Add
+from .utils import slice_to_str, findsuperclassof, unicode_subscript, unicode_superscript
 from .singleton import singleton
 
 
@@ -478,6 +474,15 @@ class MathRLambdaFormatter(RLambdaFormatter):
     '''
 
 
+    def __init__(self):
+        super().__init__()
+        from .abc import e, pi, tau, nan
+        self.constants = SimpleNamespace(
+            pi = pi,
+            e = e,
+            tau = tau,
+            nan = nan
+        )
 
     def format_operator(self, op):
         math_op = {
@@ -503,13 +508,29 @@ class MathRLambdaFormatter(RLambdaFormatter):
 
 
     def format_value(self, value):
-        # Natural numbers with float type
-        if isinstance(value, float) and int(value) == value:
-            return self.format_value(int(value))
+        if isinstance(value, float):
+            # Math constants
+            if value is self.constants.pi:
+                return self._format_node(Variable('pi'))
 
-        # Infinite or minus infinite values
-        if isinstance(value, float) and abs(value) == float('inf'):
-            return '\u221e' if value > 0 else '-\u221e'
+            if value is self.constants.e:
+                return self._format_node(Variable('e'))
+
+            if value is self.constants.tau:
+                return self._format_node(Variable('tau'))
+
+            # Nan values
+            if value is self.constants.nan:
+                return super().format_value(value)
+
+            # Infinite or minus infinite values
+            if abs(value) == float('inf'):
+                return '\u221e' if value > 0 else '-\u221e'
+
+            # Natural numbers with float type
+            if int(value) == value:
+                return self.format_value(int(value))
+
 
         # Complex numbers
         if isinstance(value, complex):
@@ -523,6 +544,7 @@ class MathRLambdaFormatter(RLambdaFormatter):
                 self.format_value(value.imag),
                 '+' if value.real > 0 else '-',
                 self.format_value(abs(value.real)))
+
 
         return super().format_value(value)
 
@@ -675,3 +697,6 @@ class MathRLambdaFormatter(RLambdaFormatter):
             return self._format_node(node)
 
         return super()._format_subnode(node, parent)
+
+
+from .astwrappers import *
