@@ -9,83 +9,91 @@ import builtins
 import math
 import operator
 from types import SimpleNamespace
-from functools import wraps
 from itertools import chain
 from .rlambda import RLambda
 from .utils import anyinstanceof
 
-_funcs = dict(builtins.__dict__)
+_funcs = dict(operator.__dict__)
+_funcs.update(builtins.__dict__)
 _funcs.update(math.__dict__)
-_funcs.update(operator.__dict__)
 _builtins = SimpleNamespace(**_funcs)
 
 
 
 # Built-in overrides
 
-def _build_wrapper(func):
-    assert callable(func)
+class Wrapper:
+    def __init__(self, func):
+        assert callable(func)
+        self.func = func
 
-    @wraps(func)
-    def _wrapper(*args, **kwargs):
+    def __call__(self, *args, **kwargs):
         if anyinstanceof(chain(args, kwargs.values()), RLambda):
-            return RLambda._call_op(func, *args, **kwargs)
-        return func(*args, **kwargs)
+            return RLambda._call_op(self.func, *args, **kwargs)
+        return self.func(*args, **kwargs)
 
-    return _wrapper
+    def __eq__(self, other):
+        if isinstance(other, Wrapper):
+            return self.func is other.func
+        return self.func is other
 
+    def __wrapped__(self):
+        return self.func
 
+    def __str__(self):
+        return str(self.func)
 
-len = length = _build_wrapper(_builtins.len)
-min = _build_wrapper(_builtins.min)
-max = _build_wrapper(_builtins.max)
-contains = _build_wrapper(_builtins.contains)
-
-ceil = _build_wrapper(_builtins.ceil)
-copysign = _build_wrapper(_builtins.copysign)
-fabs = _build_wrapper(_builtins.fabs)
-factorial = _build_wrapper(_builtins.factorial)
-floor = _build_wrapper(_builtins.floor)
-fmod = _build_wrapper(_builtins.fmod)
-frexp = _build_wrapper(_builtins.frexp)
-gcd = _build_wrapper(_builtins.gcd)
-isclose = _build_wrapper(_builtins.isclose)
-isfinite = _build_wrapper(_builtins.isfinite)
-isinf = _build_wrapper(_builtins.isinf)
-isnan = _build_wrapper(_builtins.isnan)
-ldexp = _build_wrapper(_builtins.ldexp)
-modf = _build_wrapper(_builtins.modf)
-trunc = _build_wrapper(_builtins.trunc)
-exp = _build_wrapper(_builtins.exp)
-expm1 = _build_wrapper(_builtins.expm1)
-log = _build_wrapper(_builtins.log)
-log1p = _build_wrapper(_builtins.log1p)
-log2 = _build_wrapper(_builtins.log2)
-pow = _build_wrapper(_builtins.pow)
-sqrt = _build_wrapper(_builtins.sqrt)
-acos = _build_wrapper(_builtins.acos)
-asin = _build_wrapper(_builtins.asin)
-atan = _build_wrapper(_builtins.atan)
-atan2 = _build_wrapper(_builtins.atan2)
-cos = _build_wrapper(_builtins.cos)
-hypot = _build_wrapper(_builtins.hypot)
-sin = _build_wrapper(_builtins.sin)
-tan = _build_wrapper(_builtins.tan)
-acosh = _build_wrapper(_builtins.acosh)
-asinh = _build_wrapper(_builtins.asinh)
-atanh = _build_wrapper(_builtins.atanh)
-cosh = _build_wrapper(_builtins.cosh)
-sinh = _build_wrapper(_builtins.sinh)
-tanh = _build_wrapper(_builtins.tanh)
-degrees = _build_wrapper(_builtins.degrees)
-radians = _build_wrapper(_builtins.radians)
-erf = _build_wrapper(_builtins.erf)
-erfc = _build_wrapper(_builtins.erfc)
-gamma = _build_wrapper(_builtins.gamma)
-lgamma = _build_wrapper(_builtins.lgamma)
+    def __repr__(self):
+        return repr(self.func)
 
 
+len = length = Wrapper(_builtins.len)
+min = Wrapper(_builtins.min)
+max = Wrapper(_builtins.max)
+contains = Wrapper(_builtins.contains)
 
-# Misc functions
+ceil = Wrapper(_builtins.ceil)
+copysign = Wrapper(_builtins.copysign)
+fabs = Wrapper(_builtins.fabs)
+factorial = Wrapper(_builtins.factorial)
+floor = Wrapper(_builtins.floor)
+fmod = Wrapper(_builtins.fmod)
+frexp = Wrapper(_builtins.frexp)
+gcd = Wrapper(_builtins.gcd)
+isclose = Wrapper(_builtins.isclose)
+isfinite = Wrapper(_builtins.isfinite)
+isinf = Wrapper(_builtins.isinf)
+isnan = Wrapper(_builtins.isnan)
+ldexp = Wrapper(_builtins.ldexp)
+modf = Wrapper(_builtins.modf)
+trunc = Wrapper(_builtins.trunc)
+exp = Wrapper(_builtins.exp)
+expm1 = Wrapper(_builtins.expm1)
+log = Wrapper(_builtins.log)
+log1p = Wrapper(_builtins.log1p)
+log2 = Wrapper(_builtins.log2)
+log10 = Wrapper(_builtins.log10)
+pow = Wrapper(_builtins.pow)
+sqrt = Wrapper(_builtins.sqrt)
+acos = Wrapper(_builtins.acos)
+asin = Wrapper(_builtins.asin)
+atan = Wrapper(_builtins.atan)
+atan2 = Wrapper(_builtins.atan2)
+cos = Wrapper(_builtins.cos)
+hypot = Wrapper(_builtins.hypot)
+sin = Wrapper(_builtins.sin)
+tan = Wrapper(_builtins.tan)
+acosh = Wrapper(_builtins.acosh)
+asinh = Wrapper(_builtins.asinh)
+atanh = Wrapper(_builtins.atanh)
+cosh = Wrapper(_builtins.cosh)
+sinh = Wrapper(_builtins.sinh)
+tanh = Wrapper(_builtins.tanh)
+degrees = Wrapper(_builtins.degrees)
+radians = Wrapper(_builtins.radians)
+erf = Wrapper(_builtins.erf)
+erfc = Wrapper(_builtins.erfc)
+gamma = Wrapper(_builtins.gamma)
+lgamma = Wrapper(_builtins.lgamma)
 
 

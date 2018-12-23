@@ -204,3 +204,40 @@ def slice_to_str(x):
             items = start, sep, stop, sep, step
 
     return ''.join(items)
+
+
+
+def unicode_superscript(x):
+    '''
+    Returns a sequence of unicode superscript characters, one for each digit of the given number x
+    It will be prefixed with '-' if the number is negative
+    :return:
+    '''
+    assert isinstance(x, int)
+
+    def superscript(digit):
+        if digit == 1:
+            return '\u00b9'
+        if digit == 2 or digit == 3:
+            return chr(0x00b2 + digit - 2)
+        return chr(0x2070 + digit)
+    s = ''.join(map(lambda c: superscript(int(c)), str(abs(x))))
+    if x < 0:
+        s = '-' + s
+    return s
+
+def unicode_subscript(x):
+    '''
+    Returns a sequence of unicode superscript characters, one for each digit of the given number x
+    It will be prefixed with '-' if the number is negative
+    :return:
+    '''
+    assert isinstance(x, int)
+
+    def subscript(digit):
+        return chr(0x2080 + digit)
+
+    s = ''.join(map(lambda c: subscript(int(c)), str(abs(x))))
+    if x < 0:
+        s = '-' + s
+    return s

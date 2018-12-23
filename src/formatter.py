@@ -1,17 +1,20 @@
 
 
 import operator
+import builtins
+import math
 from operator import attrgetter
 from itertools import chain
 from functools import reduce
 from types import BuiltinFunctionType, FunctionType, LambdaType
-from inspect import isclass
+from inspect import isclass, signature
 
-from .utils import enclose, slice_to_str, findsuperclassof
+from .utils import enclose, slice_to_str, findsuperclassof, unicode_subscript, unicode_superscript
 from .astwrappers import Node, Lambda, Expression, Variable, Operator, Placeholder, Index, Slice, ExtendedSlice
 from .astwrappers import Literal, LiteralNumber, LiteralEllipsis, LiteralBytes, LiteralBool, LiteralNone, LiteralStr
 from .astwrappers import Operation, UnaryOperation, BinaryOperation, CompareOperation,\
     SubscriptOperation, AttributeOperation, CallOperation
+from .astwrappers import Pow, Sub, Add
 from .singleton import singleton
 
 
@@ -436,3 +439,234 @@ class DefaultRLambdaFormatter(RLambdaFormatter):
     This class will be the default rlambda formatter. It can be used as a singleton.
     '''
     pass
+
+
+class MathRLambdaFormatter(RLambdaFormatter):
+    '''
+    An alternative formatter for printing rlambda objects:
+
+    - Variables a, b, c and d are printed as lowercased greek letters: α, β, γ, δ
+    Also A, B, C, D are formatted as uppercased greek letters: Α, Β, Γ, Δ
+
+    - Any other single character different than a,b,c,d and A,B,C,D are formatted as normal latin characters.
+
+    - The next variable names are formatted to its corresponding lowercase greek letter:
+    alpha, beta, gamma, delta, zeta, eta, theta, iota, kappa, lambda, mu, nu, xi, omicron, rho, varsigma,
+    sigma, tau, upsilon, phi, chi, psi, omega
+    If you upper case the first character, the variable will be formatted to its corresponding uppercase greek letter:
+    Alpha, Beta, Gamma, Delta, ...
+
+    pi and epsilon are reserved (they are used for math constants pi and e)
+
+    - Absolute value operations like abs(x + y) are formatted like |x + y|
+    - Ceiling and floor operations are formatted like  ⌈x + y⌉,  ⌊x + y⌋
+    - Sqrt operations are formatted like √x, √(x + y)
+    - Factorials are printed like x!, (x + y)!
+
+    - Logarithms with integer base are printed like log₂(x), log₁₀(x + y)
+    - Power operator is replaced with '^' symbol.
+    - Integer exponents are printed as superindices: x², (x+y)², (x+y)³
+
+    - Regular Multiplication symbol will be '×'
+    - Bitwise not, and, or, xor operators symbols will be ¬, ∧ ∨, ⊕ respectively
+    - Comparision operators ==, !=, <=, >= will be =, ≠, ≤, ≥ respectively
+
+
+    - float('inf') prints the infinite symbol ∞
+    - complex numbers are printed with the format xi + yj, e.g: 2i + 1, 3i
+    If only the real part is present, they are printed like regular numbers.
+    '''
+
+
+
+    def format_operator(self, op):
+        math_op = {
+            # Bitwise operators
+            '~': '\u00ac',
+            '|': '\u2228',
+            '&': '\u2227',
+            '^': '\u2295',
+
+            # Comparision operators
+            '==': '=',
+            '!=': '\u2260',
+            '>=': '\u2265',
+            '<=': '\u2264',
+
+            # Arithmetic operators
+            '*': '\u00d7',
+            '**': '^'
+        }
+        if op in math_op:
+            return math_op[op]
+        return op
+
+
+    def format_value(self, value):
+        # Natural numbers with float type
+        if isinstance(value, float) and int(value) == value:
+            return self.format_value(int(value))
+
+        # Infinite or minus infinite values
+        if isinstance(value, float) and abs(value) == float('inf'):
+            return '\u221e' if value > 0 else '-\u221e'
+
+        # Complex numbers
+        if isinstance(value, complex):
+            if value.imag == 0:
+                return self.format_value(value.real)
+            elif value.real == 0:
+                return self.format_value(value.imag) + 'i'
+            elif value.imag == 0 and value.real == 0:
+                return self.format_value(0)
+            # TODO (what if real part is negative)
+            return '{}i + {}'.format(self.format_value(value.imag), self.format_value(value.real))
+
+        return super().format_value(value)
+
+
+    def format_param(self, name):
+        return self.format_arg(name)
+
+    def format_arg(self, name):
+
+        class GreekAlphabet:
+            def __init__(self):
+                self.names = [
+                    'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta',
+                    'eta', 'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi',
+                    'omicron', 'pi', 'rho', 'varsigma',
+                    'sigma', 'tau', 'upsilon', 'phi', 'chi', 'psi', 'omega']
+
+
+            def get_symbol(self, name):
+                index = self.names.index(name)
+                return chr(0x03b1 + index)
+
+            def __contains__(self, item):
+                return item in self.names
+
+        greek_alphabet = GreekAlphabet()
+
+
+        # A greek letter name is translated to its corresponding character
+        if name.lower() in greek_alphabet:
+            greek_letter = greek_alphabet.get_symbol(name.lower())
+            return greek_letter.lower() if not name.istitle() else greek_letter.upper()
+
+        # a, b, c and d latin chars will be formatted to its corresponding greek letters.
+        if name.lower() in ('a', 'b', 'c', 'd'):
+            greek_name = {'a': 'alpha', 'b': 'beta', 'c': 'gamma', 'd': 'delta'}[name.lower()]
+            if name.isupper():
+                greek_name = greek_name.title()
+            return self.format_arg(greek_name)
+
+        return name
+
+
+    def _format_call_operation(self, node):
+        if isinstance(node.func, Placeholder) and callable(node.func.value):
+            func = node.func.value
+
+            args = tuple(node.args)
+            kwargs = dict(zip(
+                map(attrgetter('arg'), node.keywords),
+                node.keywords))
+
+            if len(kwargs) == 0 and len(args) == 1:
+                arg = args[0]
+                formatted_arg = self._format_node(arg)
+
+
+                # Absolute function calls
+                if func == builtins.abs:
+                    return '|' + formatted_arg + '|'
+
+                # Ceil & floor functions calls
+                if func == math.ceil:
+                    return '\u2308' + formatted_arg + '\u2309'
+
+                if func == math.floor:
+                    return '\u230a' + formatted_arg + '\u230b'
+
+                # Factorial
+                if func == math.factorial:
+                    if isinstance(arg, Variable):
+                        return formatted_arg + '!'
+                    return self.format_precedence(formatted_arg) + '!'
+
+                # Square roots
+                if func == math.sqrt:
+                    if isinstance(arg, Variable):
+                        return '\u221a' + formatted_arg
+                    return '\u221a' + self.format_precedence(formatted_arg)
+
+                # e raised to a power of x minus 1
+                if func == math.expm1:
+                    return self._format_node(BinaryOperation(Variable('e'), Pow, BinaryOperation(arg, Sub, LiteralNumber(1))))
+
+                # e raised to the power x
+                if func == math.exp:
+                    return self._format_node(BinaryOperation(Variable('e'), Pow, arg))
+
+                # Logarithms
+                if func in (math.log, math.log2, math.log10, math.log1p):
+                    if func in (math.log, math.log1p):
+                        base = 'log'
+                        if isinstance(arg, Variable):
+                            base += ' '
+                    else:
+                        if func == math.log10:
+                            n = 10
+                        else:
+                            n = 2
+                        base = 'log' + unicode_subscript(n)
+
+                    if func == math.log1p:
+                        body = self._format_subnode(BinaryOperation(LiteralNumber(1), Add, arg))
+                    else:
+                        if isinstance(arg, Variable):
+                            body = formatted_arg
+                        else:
+                            body = self.format_precedence(formatted_arg)
+
+                    return base + body
+
+
+
+
+            elif len(kwargs) == 0 and len(args) == 2:
+                # pow
+                if func == math.pow:
+                    return self._format_node(BinaryOperation(args[0], Pow,args[1]))
+
+        return super()._format_call_operation(node)
+
+
+
+
+    def _format_binary_operation(self, node):
+
+        # Power binary operations
+        if node.op == Pow and isinstance(node.right, LiteralNumber) and isinstance(node.right.n, int):
+            base = self._format_node(node.left)
+            if not isinstance(node.left, Variable):
+                base = self.format_precedence(base)
+            exp = unicode_superscript(node.right.n)
+            return base + exp
+
+        return super()._format_binary_operation(node)
+
+
+
+
+    def _format_subnode(self, node, parent=None):
+
+        # Complex numbers enclosed with parenthesis if both real and imaginary parts are non-zeto
+        if isinstance(node, Placeholder) and isinstance(node.value, complex):
+            value = node.value
+            if value.imag != 0 and value.real != 0:
+                return self.format_precedence(self._format_node(node))
+            return self._format_node(node)
+
+        return super()._format_subnode(node, parent)
