@@ -644,7 +644,6 @@ class MathRLambdaFormatter(RLambdaFormatter):
 
 
 
-
     def _format_binary_operation(self, node):
 
         # Power binary operations
@@ -658,6 +657,10 @@ class MathRLambdaFormatter(RLambdaFormatter):
         return super()._format_binary_operation(node)
 
 
+    def format_binary_operation(self, left, op, right):
+        if op == '^':
+            return left + op + right
+        return super().format_binary_operation(left, op, right)
 
 
     def _format_subnode(self, node, parent=None):
