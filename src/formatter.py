@@ -519,8 +519,10 @@ class MathRLambdaFormatter(RLambdaFormatter):
                 return self.format_value(value.imag) + 'i'
             elif value.imag == 0 and value.real == 0:
                 return self.format_value(0)
-            # TODO (what if real part is negative)
-            return '{}i + {}'.format(self.format_value(value.imag), self.format_value(value.real))
+            return '{}i {} {}'.format(
+                self.format_value(value.imag),
+                '+' if value.real > 0 else '-',
+                self.format_value(abs(value.real)))
 
         return super().format_value(value)
 
