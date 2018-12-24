@@ -1,6 +1,7 @@
 
 import math
-from .rlambda import RLambdaIdentity as Identity
+from .rlambda import RLambdaIdentity as Identity, RLambdaConstant as Constant
+from .astwrappers import LiteralNumber
 
 
 '''
@@ -87,7 +88,7 @@ Omega = Identity('Omega')
 
 
 '''
-Math constants that will be formatted nicely
+Math constants that will be formatted nicely. They are still float instances-
 '''
 
 pi = Pi = PI = math.pi
@@ -95,3 +96,19 @@ e = E = math.e
 tau = Tau = TAU = math.tau
 inf = Inf = INF = math.inf
 nan = Nan = NAN = math.nan
+
+
+
+'''
+Trivial number constants. Can be used to compound rlambda objects
+'''
+one = One = ONE = Constant(1)
+two = Two = TWO = Constant(2)
+three = Three = THREE = Constant(3)
+four = Four = FOUR = Constant(4)
+five = Five = FIVE = Constant(5)
+six = Six = SIX = Constant(6)
+seven = Seven = SEVEN = Constant(7)
+eight = Eight = EIGHT = Constant(8)
+nine = Nine = NINE = Constant(9)
+zero = Zero = ZERO = Constant(0)

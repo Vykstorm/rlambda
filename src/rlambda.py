@@ -355,7 +355,20 @@ class RLambdaIdentity(RLambda):
         assert isinstance(input, str)
         super().__init__(
             inputs=(input,),
+            
             body=Variable(input)
+        )
+
+
+class RLambdaConstant(RLambda):
+    '''
+    Objects of this class are also rlambdas. Are equivalent to a a lambda function object defined like:
+    lambda: x  where x is the value indicated as argument in the constructor
+    '''
+    def __init__(self, value):
+        super().__init__(
+            body=encode_value(value),
+            inputs=()
         )
 
 
