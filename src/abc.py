@@ -90,13 +90,8 @@ Omega = Identity('Omega')
 Math constants that will be formatted nicely
 '''
 
-class MathConstant(float):
-    def __new__(cls, value):
-        return float.__new__(cls, value)
-
-
-pi = Pi = PI = MathConstant(math.pi)
-e = E = MathConstant(math.e)
-tau = Tau = TAU = MathConstant(math.tau)
-inf = Inf = INF = MathConstant(math.inf)
-nan = Nan = NAN = MathConstant(math.nan)
+pi = Pi = PI = math.pi
+e = E = math.e
+tau = Tau = TAU = math.tau
+inf = Inf = INF = math.inf
+nan = Nan = NAN = math.nan

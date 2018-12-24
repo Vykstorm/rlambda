@@ -473,17 +473,6 @@ class MathRLambdaFormatter(RLambdaFormatter):
     If only the real part is present, they are printed like regular numbers.
     '''
 
-
-    def __init__(self):
-        super().__init__()
-        from .abc import e, pi, tau, nan
-        self.constants = SimpleNamespace(
-            pi = pi,
-            e = e,
-            tau = tau,
-            nan = nan
-        )
-
     def format_operator(self, op):
         math_op = {
             # Bitwise operators
@@ -510,17 +499,17 @@ class MathRLambdaFormatter(RLambdaFormatter):
     def format_value(self, value):
         if isinstance(value, float):
             # Math constants
-            if value is self.constants.pi:
+            if value == math.pi:
                 return self._format_node(Variable('pi'))
 
-            if value is self.constants.e:
+            if value == math.e:
                 return self._format_node(Variable('e'))
 
-            if value is self.constants.tau:
+            if value == math.tau:
                 return self._format_node(Variable('tau'))
 
             # Nan values
-            if value is self.constants.nan:
+            if value is math.nan:
                 return super().format_value(value)
 
             # Infinite or minus infinite values
