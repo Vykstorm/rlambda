@@ -1,5 +1,6 @@
+## rlambda library
 
-**rlambda library**
+### Introduction
 
 
 This library written in python is aimed to provide the next features:
@@ -12,7 +13,7 @@ its code.
 Its implementation mostly relies on the standard python "ast" module introduced in version 2.6, but for now
 its only tested on versions >= 3.6
 
-#
+### Setup
 You can install it running the script setup.py provided
 ```
 git clone https://github.com/Vykstorm/rlambda.git
@@ -20,7 +21,7 @@ cd rlambda
 python3 setup.py install
 ```
 
-#
+### Usage
 
 The next code is an example that shows how to construct a simple rlambda object
 ```python
