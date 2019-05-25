@@ -62,8 +62,5 @@ It prints the function body and its parameters
 
 
 #
-
-Few usage examples can be found at **examples/** directory
-
-Under **docs/**, you can take a look at few ipython notebooks that explains in more detail, the features of this library with interactive code examples.
+Under [docs/](docs/), you can take a look at few ipython notebooks that explains in more detail, the features of this library with interactive code examples.
 
