@@ -429,14 +429,6 @@ class RLambdaFormatter:
 
 
 
-@singleton
-class DefaultRLambdaFormatter(RLambdaFormatter):
-    '''
-    This class will be the default rlambda formatter. It can be used as a singleton.
-    '''
-    pass
-
-
 class MathRLambdaFormatter(RLambdaFormatter):
     '''
     An alternative formatter for printing rlambda objects:
@@ -686,6 +678,70 @@ class MathRLambdaFormatter(RLambdaFormatter):
             return self._format_node(node)
 
         return super()._format_subnode(node, parent)
+
+
+@singleton
+class RLambdaFormatterManager:
+    '''
+    This class will manage the default formatter to print rlambda objects
+    '''
+    def __init__(self):
+        self.default_formatter = RLambdaFormatter()
+
+
+def set_default_formatter(x):
+    '''
+    Changes the default formatter that is used to print out the rlambda objects when evaluating
+    the metamethods __str__ & __repr__
+    :param x: Must be an instance or subclass of RLambdaFormatter, None or one of the next labels
+    'base', 'math'
+
+    If None is set, the default formatter will be the base formatter (RLambdaFormatter).
+    Also the base formatter is used when indicating the 'base' label
+
+    'math' label sets an instance of the class MathRLambdaFormatter as default formatter
+
+    examples:
+    set_default_formatter(None)
+    set_default_formatter('base')
+    set_default_formatter('math')
+    set_default_formatter(MathRLambdaFormatter())
+
+    class CustomFormatter(RLambdaFormatter):
+        pass
+    set_default_formatter(CustomFormatter)
+    set_default_formatter(CustomFormatter())
+
+    '''
+    formatter_cls = dict(
+        base=RLambdaFormatter,
+        math=MathRLambdaFormatter
+    )
+
+    if x is None:
+        formatter = RLambdaFormatter()
+    if isclass(x) and issubclass(x, RLambdaFormatter):
+        formatter = x()
+    elif isinstance(x, RLambdaFormatter):
+        formatter = x
+    elif x in formatter_cls.keys():
+        formatter = formatter_cls[x]()
+    else:
+        raise ValueError(
+            'Formatter must be an instance or subclass of RLambdaFormatter, None value or ' +
+            'one of the next labels: {}'.format(', '.join(formatter_cls.keys()))
+        )
+
+    # Set formatter as default
+    RLambdaFormatterManager().default_formatter = formatter
+
+
+def get_default_formatter():
+    '''
+    :return The current instance of RLambdaFormatter class used as the default formatter
+    to print out rlambda objects
+    '''
+    return RLambdaFormatterManager().default_formatter
 
 
 from .astwrappers import *

@@ -18,7 +18,7 @@ class Node:
     Represents any kind of node
     '''
     def __str__(self):
-        return DefaultRLambdaFormatter()._format_node(self)
+        return get_default_formatter()._format_node(self)
 
     def __repr__(self):
         return str(self)
@@ -377,7 +377,7 @@ class BitOr(BinaryOperator, ast.BitOr):
     def __init__(self):
         BinaryOperator.__init__(self, '|', 4, True)
         ast.BitOr.__init__(self)
-        
+
 class BitAnd(BinaryOperator, ast.BitAnd):
     def __init__(self):
         BinaryOperator.__init__(self, '&', 6, True)
@@ -416,12 +416,12 @@ class LowerEqualThan(CompareOperator, ast.LtE):
     def __init__(self):
         CompareOperator.__init__(self, '<=')
         ast.LtE.__init__(self)
-        
+
 class GreaterThan(CompareOperator, ast.Gt):
     def __init__(self):
         CompareOperator.__init__(self, '>')
         ast.Gt.__init__(self)
-        
+
 class GreaterEqualThan(CompareOperator, ast.GtE):
     def __init__(self):
         CompareOperator.__init__(self, '>=')
@@ -791,4 +791,4 @@ class VariableBinder(ast.NodeTransformer):
         return super().generic_visit(node)
 
 
-from .formatter import DefaultRLambdaFormatter
+from .formatter import get_default_formatter
